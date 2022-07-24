@@ -1,0 +1,52 @@
+{
+  "name": "webkraken",
+  "version": "0.0.2",
+  "description": "CLI crawler",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eu-ge-ne/webkraken.git"
+  },
+  "author": "Eugene Pobochny <eugene.pobochny@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eu-ge-ne/webkraken/issues"
+  },
+  "homepage": "https://github.com/eu-ge-ne/webkraken#readme",
+  "type": "module",
+  "bin": {
+    "webkraken": "bin/webkraken.js"
+  },
+  "files": [
+    "bin/**/*",
+    "build/**/*"
+  ],
+  "scripts": {
+    "build": "run-s build:clean build:tsc",
+    "build:clean": "rimraf build",
+    "build:tsc": "tsc",
+    "pretest": "run-s build",
+    "test": "ava build/**.test.js",
+    "prestart": "run-s build",
+    "start": "node --enable-source-maps build/main.js"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "7.5.0",
+    "@types/node": "18.6.0",
+    "@types/user-agents": "1.0.2",
+    "ava": "4.3.1",
+    "npm-run-all": "4.1.5",
+    "prettier": "2.7.1",
+    "rimraf": "3.0.2",
+    "typescript": "4.7.4"
+  },
+  "dependencies": {
+    "better-sqlite3": "7.6.2",
+    "chalk": "5.0.1",
+    "commander": "9.4.0",
+    "figures": "4.0.1",
+    "got": "12.2.0",
+    "linkedom": "0.14.12",
+    "pretty-ms": "8.0.0",
+    "user-agents": "1.0.1086"
+  }
+}

@@ -1,0 +1,116 @@
+import assert from "assert/strict";
+
+import { Statement } from "better-sqlite3";
+
+import type { Db } from "./db.js";
+import type { ResTime } from "../res_time.js";
+
+export class Internal {
+    #st_all: Statement;
+    #st_select_pending: Statement;
+    #st_upsert: Statement<{ parent: number; chunk: string }>;
+    #st_update_visited: Statement<{ id: number; http_code: number } & ResTime>;
+    #st_link_insert: Statement<{ from: number; to: number }>;
+
+    #items = new Map<string, number>();
+    #visited = 0;
+    #pending = 0;
+
+    constructor(db: Db) {
+        this.#st_all = db.prepare(`
+SELECT
+    "id",
+    "parent",
+    "chunk"
+FROM "internal";`);
+
+        this.#st_select_pending = db.prepare(`
+SELECT
+    "id",
+    "parent",
+    "chunk"
+FROM "internal"
+WHERE "visited" = 0
+LIMIT :limit;
+`);
+
+        this.#st_upsert = db.prepare(`
+INSERT INTO "internal" ("parent", "chunk", "visited", "http_code", "time_total")
+VALUES (:parent, :chunk, 0, -1, -1)
+ON CONFLICT ("parent", "chunk") DO NOTHING
+RETURNING "id";
+`);
+
+        this.#st_update_visited = db.prepare(`
+UPDATE "internal" SET
+    "visited" = 1,
+    "http_code" = :http_code,
+    "time_total" = :time_total
+WHERE "id" = :id
+RETURNING "id";
+`);
+
+        this.#st_link_insert = db.prepare(`
+INSERT INTO "internal_link" ("from", "to")
+VALUES (:from, :to)
+RETURNING "id";
+`);
+
+        for (const item of this.#all()) {
+            this.#items.set(item.parent + item.chunk, item.id);
+        }
+
+        this.#visited = db.prepare<void>(`SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" = 1;`).get().count;
+
+        this.#pending = db.prepare<void>(`SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" = 0;`).get().count;
+    }
+
+    stats() {
+        return {
+            internal_visited: this.#visited,
+            internal_pending: this.#pending,
+            internal_total: this.#items.size,
+        };
+    }
+
+    touch(parent: number, chunk: string): number {
+        let id = this.#upsert(parent, chunk);
+        if (typeof id === "number") {
+            this.#items.set(parent + chunk, id);
+        } else {
+            id = this.#items.get(parent + chunk);
+            assert(id);
+        }
+        return id;
+    }
+
+    select_pending(limit: number): { id: number; parent: number; chunk: string }[] {
+        return this.#st_select_pending.all({ limit });
+    }
+
+    update_visited(id: number, http_code: number, res_time: ResTime): void {
+        const result = this.#st_update_visited.get({ id, http_code, ...res_time });
+        assert(typeof result.id === "number");
+        this.#visited += 1;
+        this.#pending -= 1;
+    }
+
+    link_insert(from: number, to: number): number {
+        const result = this.#st_link_insert.get({ from, to });
+        assert(typeof result.id === "number");
+        return result.id;
+    }
+
+    #all(): IterableIterator<{ id: number; parent: number; chunk: string }> {
+        return this.#st_all.iterate();
+    }
+
+    #upsert(parent: number, chunk: string): number | undefined {
+        const result = this.#st_upsert.get({ parent, chunk });
+        const id = result?.id;
+        if (typeof id === "number") {
+            this.#pending += 1;
+        }
+        return id;
+    }
+}
