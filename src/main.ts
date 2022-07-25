@@ -9,6 +9,7 @@ import { Internal } from "./db/internal.js";
 import { Queue } from "./queue.js";
 import { Progress } from "./progress.js";
 import { Crawler } from "./crawler.js";
+import { parse_url } from "./url.js";
 
 const PROGRESS_INTERVAL = 1_000;
 
@@ -21,7 +22,7 @@ program
         "crawl root",
         (value: string, previous: URL[]) => {
             try {
-                return previous.concat(new URL(value));
+                return previous.concat(parse_url(value));
             } catch (err) {
                 throw new Error(`Invalid URL: ${value}`);
             }
@@ -58,7 +59,7 @@ async function init(opts: { root: URL[]; file: string; concurrency: number; user
     for (const root of opts.root) {
         internal.touch(...internal_tree.touch(root));
     }
-    const roots = internal_tree.get_roots().map((x) => new URL(x));
+    const roots = internal_tree.get_roots();
 
     const queue = new Queue(internal_tree, internal, opts.concurrency);
     queue.cache();
@@ -94,7 +95,7 @@ async function run(opts: { file: string; concurrency: number; userAgent?: string
     const external = new External(db);
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
-    const roots = internal_tree.get_roots().map((x) => new URL(x));
+    const roots = internal_tree.get_roots();
 
     const queue = new Queue(internal_tree, internal, opts.concurrency);
     queue.cache();

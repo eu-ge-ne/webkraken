@@ -3,7 +3,7 @@ import assert from "assert/strict";
 import { Statement } from "better-sqlite3";
 
 import type { Db } from "./db.js";
-import { split_url } from "../url.js";
+import { parse_url, split_url } from "../url.js";
 
 interface Item {
     id: number;
@@ -42,8 +42,8 @@ RETURNING "id";
         };
     }
 
-    get_roots() {
-        return this.#items.filter((x) => !x.parent).map((x) => x.chunk);
+    get_roots(): URL[] {
+        return this.#items.filter((x) => !x.parent).map((x) => parse_url(x.chunk));
     }
 
     touch(url: URL): [number, string] {

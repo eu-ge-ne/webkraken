@@ -1,6 +1,14 @@
+export function parse_url(href: string): URL {
+    const url = new URL(href);
+    url.searchParams.sort();
+    return url;
+}
+
 export function try_parse_url(href: string, base: string): URL | undefined {
     try {
-        return new URL(href, base);
+        const url = new URL(href, base);
+        url.searchParams.sort();
+        return url;
     } catch (err) {
         // do nothing
     }
@@ -19,6 +27,7 @@ export function split_url(url: URL): string[] {
     }
 
     if (url.search) {
+        url.searchParams.sort();
         parts.push(url.search);
     }
 
