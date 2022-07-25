@@ -8,7 +8,7 @@ import type { ResTime } from "../res_time.js";
 export class Internal {
     #st_all: Statement;
     #st_select_pending: Statement;
-    #st_upsert: Statement<{ parent: number; chunk: string }>;
+    #st_upsert: Statement<{ parent: number; chunk: string; qs: string }>;
     #st_update_visited: Statement<{ id: number; http_code: number } & ResTime>;
     #st_link_insert: Statement<{ from: number; to: number }>;
 
@@ -21,23 +21,26 @@ export class Internal {
 SELECT
     "id",
     "parent",
-    "chunk"
-FROM "internal";`);
+    "chunk",
+    "qs"
+FROM "internal";
+`);
 
         this.#st_select_pending = db.prepare(`
 SELECT
     "id",
     "parent",
-    "chunk"
+    "chunk",
+    "qs"
 FROM "internal"
 WHERE "visited" = 0
 LIMIT :limit;
 `);
 
         this.#st_upsert = db.prepare(`
-INSERT INTO "internal" ("parent", "chunk", "visited", "http_code", "time_total")
-VALUES (:parent, :chunk, 0, -1, -1)
-ON CONFLICT ("parent", "chunk") DO NOTHING
+INSERT INTO "internal" ("parent", "chunk", "qs", "visited", "http_code", "time_total")
+VALUES (:parent, :chunk, :qs, 0, -1, -1)
+ON CONFLICT ("parent", "chunk", "qs") DO NOTHING
 RETURNING "id";
 `);
 
@@ -57,7 +60,7 @@ RETURNING "id";
 `);
 
         for (const item of this.#all()) {
-            this.#items.set(item.parent + item.chunk, item.id);
+            this.#items.set(item.parent + item.chunk + item.qs, item.id);
         }
 
         this.#visited = db.prepare<void>(`SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" = 1;`).get().count;
@@ -73,18 +76,19 @@ RETURNING "id";
         };
     }
 
-    touch(parent: number, chunk: string): number {
-        let id = this.#upsert(parent, chunk);
+    touch(item: { parent: number; chunk: string; qs: string }): number {
+        let id = this.#upsert(item);
+        const key = item.parent + item.chunk + item.qs;
         if (typeof id === "number") {
-            this.#items.set(parent + chunk, id);
+            this.#items.set(key, id);
         } else {
-            id = this.#items.get(parent + chunk);
+            id = this.#items.get(key);
             assert(id);
         }
         return id;
     }
 
-    select_pending(limit: number): { id: number; parent: number; chunk: string }[] {
+    select_pending(limit: number): { id: number; parent: number; chunk: string; qs: string }[] {
         return this.#st_select_pending.all({ limit });
     }
 
@@ -101,12 +105,12 @@ RETURNING "id";
         return result.id;
     }
 
-    #all(): IterableIterator<{ id: number; parent: number; chunk: string }> {
+    #all(): IterableIterator<{ id: number; parent: number; chunk: string; qs: string }> {
         return this.#st_all.iterate();
     }
 
-    #upsert(parent: number, chunk: string): number | undefined {
-        const result = this.#st_upsert.get({ parent, chunk });
+    #upsert(item: { parent: number; chunk: string; qs: string }): number | undefined {
+        const result = this.#st_upsert.get(item);
         const id = result?.id;
         if (typeof id === "number") {
             this.#pending += 1;

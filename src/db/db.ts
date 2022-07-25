@@ -45,10 +45,11 @@ CREATE TABLE IF NOT EXISTS "internal" (
     "id"         INTEGER PRIMARY KEY ASC,
     "parent"     INTEGER NOT NULL REFERENCES "internal_tree" ("id") ON DELETE CASCADE,
     "chunk"      TEXT    NOT NULL,
+    "qs"         TEXT    NOT NULL,
     "visited"    INTEGER NOT NULL,
     "http_code"  INTEGER NOT NULL,
     "time_total" INTEGER NOT NULL,
-    UNIQUE ("parent", "chunk")
+    UNIQUE ("parent", "chunk", "qs")
 );
 
 CREATE TABLE IF NOT EXISTS "invalid_link" (

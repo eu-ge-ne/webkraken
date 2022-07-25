@@ -30,19 +30,47 @@ test_try_parse_url("/", "http://test.com", "http://test.com/");
 test_try_parse_url("/?a=1&b=2&c=3", "http://test.com", "http://test.com/?a=1&b=2&c=3");
 test_try_parse_url("/?c=3&b=2&a=1", "http://test.com", "http://test.com/?a=1&b=2&c=3");
 
-const macro_split_url = test.macro((t, href: string, expected: string[]) => {
+const macro_split_url = test.macro((t, href: string, expected: { chunks: string[]; chunk: string; qs: string }) => {
     const result = split_url(new URL(href));
     t.deepEqual(result, expected);
 });
 
-function test_split_url(href: string, expected: string[]) {
+function test_split_url(href: string, expected: { chunks: string[]; chunk: string; qs: string }) {
     test(`split_url: ${href}`, macro_split_url, href, expected);
 }
 
-test_split_url("http://test.com", ["http://test.com", "/"]);
-test_split_url("http://test.com/", ["http://test.com", "/"]);
-test_split_url("http://test.com//", ["http://test.com", "/", "/"]);
-test_split_url("http://test.com/a/b", ["http://test.com", "/a", "/b"]);
-test_split_url("http://test.com/a/b/", ["http://test.com", "/a", "/b", "/"]);
-test_split_url("http://test.com/a/?b=c&d=e", ["http://test.com", "/a", "/", "?b=c&d=e"]);
-test_split_url("http://test.com/a/?d=3&c=2&b=1", ["http://test.com", "/a", "/", "?b=1&c=2&d=3"]);
+test_split_url("http://test.com", {
+    chunks: ["http://test.com"],
+    chunk: "/",
+    qs: "",
+});
+test_split_url("http://test.com/", {
+    chunks: ["http://test.com"],
+    chunk: "/",
+    qs: "",
+});
+test_split_url("http://test.com//", {
+    chunks: ["http://test.com", "/"],
+    chunk: "/",
+    qs: "",
+});
+test_split_url("http://test.com/a/b", {
+    chunks: ["http://test.com", "/a"],
+    chunk: "/b",
+    qs: "",
+});
+test_split_url("http://test.com/a/b/", {
+    chunks: ["http://test.com", "/a", "/b"],
+    chunk: "/",
+    qs: "",
+});
+test_split_url("http://test.com/a/?b=c&d=e", {
+    chunks: ["http://test.com", "/a"],
+    chunk: "/",
+    qs: "?b=c&d=e",
+});
+test_split_url("http://test.com/a/?d=3&c=2&b=1", {
+    chunks: ["http://test.com", "/a"],
+    chunk: "/",
+    qs: "?b=1&c=2&d=3",
+});

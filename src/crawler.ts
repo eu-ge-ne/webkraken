@@ -6,7 +6,7 @@ import type { InternalTree } from "./db/internal_tree.js";
 import type { Internal } from "./db/internal.js";
 import type { Queue } from "./queue.js";
 import { scrape } from "./scrape.js";
-import { try_parse_url } from "./url.js";
+import { try_parse_url, split_url } from "./url.js";
 import * as res_time from "./res_time.js";
 
 export class Crawler {
@@ -60,7 +60,9 @@ export class Crawler {
                 for (const url of valid.values()) {
                     const is_internal = this.roots.some((root) => root.origin === url.origin);
                     if (is_internal) {
-                        const to_id = this.internal.touch(...this.internal_tree.touch(url));
+                        const item = split_url(url);
+                        const parent = this.internal_tree.touch(item.chunks);
+                        const to_id = this.internal.touch({ parent, chunk: item.chunk, qs: item.qs });
                         this.internal.link_insert(visit_id, to_id);
                     } else {
                         const to_id = this.external.touch(url.href);

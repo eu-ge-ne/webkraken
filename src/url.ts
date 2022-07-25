@@ -1,3 +1,5 @@
+import assert from "assert/strict";
+
 export function parse_url(href: string): URL {
     const url = new URL(href);
     url.searchParams.sort();
@@ -14,22 +16,23 @@ export function try_parse_url(href: string, base: string): URL | undefined {
     }
 }
 
-export function split_url(url: URL): string[] {
-    const parts: string[] = [];
+export function split_url(url: URL): { chunks: string[]; chunk: string; qs: string } {
+    const chunks: string[] = [];
 
-    parts.push(url.origin);
+    chunks.push(url.origin);
 
     const pp = url.pathname.split("/");
     pp.shift();
 
     for (const p of pp) {
-        parts.push("/" + p);
+        chunks.push("/" + p);
     }
 
-    if (url.search) {
-        url.searchParams.sort();
-        parts.push(url.search);
-    }
+    const chunk = chunks.pop();
+    assert(chunk);
 
-    return parts;
+    url.searchParams.sort();
+    const qs = url.search;
+
+    return { chunks, chunk, qs };
 }

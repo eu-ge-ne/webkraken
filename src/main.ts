@@ -9,7 +9,7 @@ import { Internal } from "./db/internal.js";
 import { Queue } from "./queue.js";
 import { Progress } from "./progress.js";
 import { Crawler } from "./crawler.js";
-import { parse_url } from "./url.js";
+import { parse_url, split_url } from "./url.js";
 
 const PROGRESS_INTERVAL = 1_000;
 
@@ -57,9 +57,11 @@ async function init(opts: { root: URL[]; file: string; concurrency: number; user
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
     for (const root of opts.root) {
-        internal.touch(...internal_tree.touch(root));
+        const item = split_url(root);
+        const parent = internal_tree.touch(item.chunks);
+        internal.touch({ parent, chunk: item.chunk, qs: item.qs });
     }
-    const roots = internal_tree.get_roots();
+    const roots = internal_tree.get_roots().map(parse_url);
 
     const queue = new Queue(internal_tree, internal, opts.concurrency);
     queue.cache();
@@ -95,7 +97,7 @@ async function run(opts: { file: string; concurrency: number; userAgent?: string
     const external = new External(db);
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
-    const roots = internal_tree.get_roots();
+    const roots = internal_tree.get_roots().map(parse_url);
 
     const queue = new Queue(internal_tree, internal, opts.concurrency);
     queue.cache();

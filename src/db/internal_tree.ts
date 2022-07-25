@@ -3,7 +3,6 @@ import assert from "assert/strict";
 import { Statement } from "better-sqlite3";
 
 import type { Db } from "./db.js";
-import { parse_url, split_url } from "../url.js";
 
 interface Item {
     id: number;
@@ -44,15 +43,13 @@ RETURNING "id";
         };
     }
 
-    get_roots(): URL[] {
-        return this.#items.filter((x) => x.parent === 0).map((x) => parse_url(x.chunk));
+    get_roots(): string[] {
+        return this.#items.filter((x) => x.parent === 0).map((x) => x.chunk);
     }
 
-    touch(url: URL): [number, string] {
-        const chunks = split_url(url);
-        const last = chunks.pop();
-
+    touch(chunks: string[]): number {
         let parent = 0;
+
         for (const chunk of chunks) {
             let item = this.#items.find((x) => x.parent === parent && x.chunk === chunk);
             if (!item) {
@@ -64,19 +61,21 @@ RETURNING "id";
         }
 
         assert(parent !== 0);
-        assert(last);
 
-        return [parent, last];
+        return parent;
     }
 
-    build_href(parent: number, chunk: string) {
-        let chunks: string[] = [chunk];
+    build_href(x: { parent: number; chunk: string; qs: string }) {
+        let chunks: string[] = [x.chunk, x.qs];
+        let parent = x.parent;
+
         while (parent !== 0) {
             const item = this.#items.find((x) => x.id === parent);
             assert(item);
             chunks.unshift(item.chunk);
             parent = item.parent;
         }
+
         return chunks.join("");
     }
 

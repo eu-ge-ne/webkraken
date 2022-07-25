@@ -40,7 +40,7 @@ export class Queue {
 
             this.#cache = rows.map((row) => ({
                 id: row.id,
-                href: this.internal_tree.build_href(row.parent, row.chunk),
+                href: this.internal_tree.build_href(row),
             }));
         }
     }
