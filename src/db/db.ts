@@ -5,7 +5,21 @@ export class Db {
 
     constructor(file_name: string) {
         this.#db = new Sqlite(file_name);
+    }
 
+    close() {
+        this.#db.close();
+    }
+
+    transaction(fn: () => void) {
+        this.#db.transaction(fn)();
+    }
+
+    prepare<T>(source: string) {
+        return this.#db.prepare<T>(source);
+    }
+
+    init() {
         this.#db.exec(`
 CREATE TABLE IF NOT EXISTS "invalid" (
     "id"   INTEGER PRIMARY KEY ASC,
@@ -55,17 +69,5 @@ CREATE TABLE IF NOT EXISTS "internal_link" (
     UNIQUE ("from", "to")
 );
 `);
-    }
-
-    close() {
-        this.#db.close();
-    }
-
-    transaction(fn: () => void) {
-        this.#db.transaction(fn)();
-    }
-
-    prepare<T>(source: string) {
-        return this.#db.prepare<T>(source);
     }
 }

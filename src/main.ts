@@ -49,6 +49,7 @@ async function init(opts: { root: URL[]; file: string; concurrency: number; user
     });
 
     const db = new Db(opts.file);
+    db.init();
 
     const invalid = new Invalid(db);
     const external = new External(db);
