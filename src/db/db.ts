@@ -33,10 +33,13 @@ CREATE TABLE IF NOT EXISTS "external" (
 
 CREATE TABLE IF NOT EXISTS "internal_tree" (
     "id"     INTEGER PRIMARY KEY ASC,
-    "parent" INTEGER NULL REFERENCES "internal_tree" ("id") ON DELETE CASCADE,
+    "parent" INTEGER NOT NULL REFERENCES "internal_tree" ("id") ON DELETE CASCADE,
     "chunk"  TEXT    NOT NULL,
     UNIQUE ("parent", "chunk")
 );
+
+INSERT INTO "internal_tree" ("id", "parent", "chunk")
+VALUES (0, 0, '');
 
 CREATE TABLE IF NOT EXISTS "internal" (
     "id"         INTEGER PRIMARY KEY ASC,

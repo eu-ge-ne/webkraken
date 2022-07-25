@@ -7,13 +7,13 @@ import { parse_url, split_url } from "../url.js";
 
 interface Item {
     id: number;
-    parent?: number;
+    parent: number;
     chunk: string;
 }
 
 export class InternalTree {
     #st_all: Statement;
-    #st_insert: Statement<{ parent: number | undefined; chunk: string }>;
+    #st_insert: Statement<{ parent: number; chunk: string }>;
 
     #items: Item[] = [];
 
@@ -23,7 +23,9 @@ SELECT
     "id",
     "parent",
     "chunk"
-FROM "internal_tree";`);
+FROM "internal_tree"
+WHERE "id" != 0;
+`);
 
         this.#st_insert = db.prepare(`
 INSERT INTO "internal_tree" ("parent", "chunk")
@@ -43,14 +45,14 @@ RETURNING "id";
     }
 
     get_roots(): URL[] {
-        return this.#items.filter((x) => !x.parent).map((x) => parse_url(x.chunk));
+        return this.#items.filter((x) => x.parent === 0).map((x) => parse_url(x.chunk));
     }
 
     touch(url: URL): [number, string] {
         const chunks = split_url(url);
         const last = chunks.pop();
 
-        let parent: number | undefined;
+        let parent = 0;
         for (const chunk of chunks) {
             let item = this.#items.find((x) => x.parent === parent && x.chunk === chunk);
             if (!item) {
@@ -61,15 +63,15 @@ RETURNING "id";
             parent = item.id;
         }
 
-        assert(parent);
+        assert(parent !== 0);
         assert(last);
 
         return [parent, last];
     }
 
-    build_href(parent: number | undefined, chunk: string) {
+    build_href(parent: number, chunk: string) {
         let chunks: string[] = [chunk];
-        while (parent) {
+        while (parent !== 0) {
             const item = this.#items.find((x) => x.id === parent);
             assert(item);
             chunks.unshift(item.chunk);
@@ -78,11 +80,11 @@ RETURNING "id";
         return chunks.join("");
     }
 
-    #all(): IterableIterator<{ id: number; parent?: number; chunk: string }> {
+    #all(): IterableIterator<{ id: number; parent: number; chunk: string }> {
         return this.#st_all.iterate();
     }
 
-    #insert(parent: number | undefined, chunk: string): number {
+    #insert(parent: number, chunk: string): number {
         const result = this.#st_insert.get({ parent, chunk });
         assert(typeof result.id === "number");
         return result.id;
