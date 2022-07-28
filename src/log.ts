@@ -10,6 +10,7 @@ const FIG = figures.squareSmallFilled;
 const FIG_ERROR = chalk.bold.redBright(FIG) + " ";
 const FIG_WARNING = chalk.bold.yellowBright(FIG) + " ";
 const FIG_INFO = chalk.bold.green(FIG) + " ";
+const FIG_DEBUG = chalk.bold.gray(FIG) + " ";
 
 const log = new Console({
     stdout,
@@ -35,7 +36,9 @@ export const info: LogFn = isTTY
     ? (msg, ...params) => bar_wrap(log.info, FIG_INFO + now() + msg, ...params)
     : (msg, ...params) => log.info(FIG_INFO + now() + msg, ...params);
 
-export const debug: LogFn = isTTY ? (msg, ...params) => {} : (msg, ...params) => {};
+export const debug: LogFn = isTTY
+    ? (msg, ...params) => bar_wrap(log.debug, FIG_DEBUG + now() + chalk.gray(msg), ...params)
+    : (msg, ...params) => log.info(FIG_DEBUG + now() + chalk.gray(msg), ...params);
 
 export function bar(content: string) {
     bar_content = content;
