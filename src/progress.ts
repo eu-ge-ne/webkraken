@@ -40,16 +40,18 @@ export class Progress {
 
         const end_str = `${stats.internal_visited}/${stats.internal_pending} TOTAL: ${stats.internal_total} TREE: ${stats.tree_total} EXT: ${stats.external_total} INV: ${stats.invalid_total} CACHE: ${stats.queue_cache} ACT: ${stats.queue_active}`;
 
-        let progress = "";
+        let progress = " ";
 
-        const width_available = log.bar_width() - elapsed.length - end_str.length - START_LEN - END_LEN;
-        if (width_available >= 10) {
-            const d = width_available / stats.internal_total;
-            const w0 = Math.round(d * stats.internal_visited);
-            const w1 = width_available - w0;
-            progress = START + PR0.repeat(w0) + PR1.repeat(w1) + END;
+        if (log.isTTY) {
+            const width_available = log.bar_width() - elapsed.length - end_str.length - START_LEN - END_LEN;
+            if (width_available >= 10) {
+                const d = width_available / stats.internal_total;
+                const w0 = Math.round(d * stats.internal_visited);
+                const w1 = width_available - w0;
+                progress = START + PR0.repeat(w0) + PR1.repeat(w1) + END;
+            }
         }
 
-        log.set_bar(elapsed + progress + end_str);
+        log.bar(elapsed + progress + end_str);
     }
 }

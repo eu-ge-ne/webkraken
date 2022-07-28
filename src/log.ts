@@ -1,7 +1,10 @@
+import { stdout, stderr } from "node:process";
 import { Console } from "node:console";
 
 import chalk from "chalk";
 import figures from "figures";
+
+type LogFn = (msg: unknown, ...params: unknown[]) => void;
 
 const FIG = figures.squareSmallFilled;
 const FIG_ERROR = chalk.bold.redBright(FIG) + " ";
@@ -9,59 +12,61 @@ const FIG_WARNING = chalk.bold.yellowBright(FIG) + " ";
 const FIG_INFO = chalk.bold.green(FIG) + " ";
 
 const log = new Console({
-    stdout: process.stdout,
-    stderr: process.stderr,
+    stdout,
+    stderr,
     inspectOptions: {
         compact: false,
     },
 });
 
-let bar = "";
+let bar_content = "";
 
-export function set_bar(str: string) {
-    bar = str;
-    show_bar();
+export const isTTY = stdout.isTTY;
+
+export const error: LogFn = isTTY
+    ? (msg, ...params) => bar_wrap(log.error, FIG_ERROR + now() + chalk.redBright(msg), ...params)
+    : (msg, ...params) => log.error(FIG_ERROR + now() + chalk.redBright(msg), ...params);
+
+export const warn: LogFn = isTTY
+    ? (msg, ...params) => bar_wrap(log.warn, FIG_WARNING + now() + chalk.yellowBright(msg), ...params)
+    : (msg, ...params) => log.warn(FIG_WARNING + now() + chalk.yellowBright(msg), ...params);
+
+export const info: LogFn = isTTY
+    ? (msg, ...params) => bar_wrap(log.info, FIG_INFO + now() + msg, ...params)
+    : (msg, ...params) => log.info(FIG_INFO + now() + msg, ...params);
+
+export const debug: LogFn = isTTY ? (msg, ...params) => {} : (msg, ...params) => {};
+
+export function bar(content: string) {
+    bar_content = content;
+    bar_show();
 }
 
 export function bar_width() {
-    return process.stdout.columns;
-}
-
-export function error(msg: unknown, ...params: unknown[]) {
-    hide_bar();
-    log.error(FIG_ERROR + now() + chalk.redBright(msg), ...params);
-    show_bar();
-}
-
-export function warn(msg: unknown, ...params: unknown[]) {
-    hide_bar();
-    log.warn(FIG_WARNING + now() + chalk.yellowBright(msg), ...params);
-    show_bar();
-}
-
-export function info(msg: unknown, ...params: unknown[]) {
-    hide_bar();
-    log.info(FIG_INFO + now() + msg, ...params);
-    show_bar();
-}
-
-export function debug(msg: unknown, ...params: unknown[]) {
-    // do nothing
+    return stdout.columns;
 }
 
 function now() {
     return chalk.dim(new Date().toISOString()) + " ";
 }
 
-function hide_bar() {
-    process.stdout.cursorTo(0, process.stdout.rows - 1);
-    process.stdout.clearLine(0);
+const bar_show = isTTY
+    ? () => {
+          stdout.cursorTo(0, stdout.rows - 1);
+          stdout.write(bar_content);
+          stdout.clearLine(1);
+      }
+    : () => {
+          log.info(bar_content);
+      };
+
+function bar_hide() {
+    stdout.cursorTo(0, stdout.rows - 1);
+    stdout.clearLine(0);
 }
 
-function show_bar() {
-    process.stdout.cursorTo(0, process.stdout.rows - 1);
-    process.stdout.write(bar);
-    process.stdout.clearLine(1);
-}
-
-show_bar();
+const bar_wrap: (fn: LogFn, msg: unknown, ...params: unknown[]) => void = (fn, msg, ...params) => {
+    bar_hide();
+    fn(msg, ...params);
+    bar_show();
+};
