@@ -30,20 +30,20 @@ program
         []
     )
     .requiredOption("-f --file <file>", "output file")
-    .option("-c  --concurrency [number]", "concurrency", (x) => Number.parseInt(x, 10), 1)
+    .option("--rps [number]", "rps", Number.parseFloat, 1)
     .option("-ua  --user-agent [string]", "user agent")
     .action(init);
 
 program
     .command("run")
     .requiredOption("-f --file <file>", "output file")
-    .option("-c  --concurrency [number]", "concurrency", (x) => Number.parseInt(x, 10), 1)
+    .option("--rps [number]", "rps", Number.parseFloat, 1)
     .option("-ua  --user-agent [string]", "user agent")
     .action(run);
 
 await program.parseAsync();
 
-async function init(opts: { root: URL[]; file: string; concurrency: number; userAgent?: string }) {
+async function init(opts: { root: URL[]; file: string; rps: number; userAgent?: string }) {
     log.info("Initializing", {
         ...opts,
         root: opts.root.map((x) => x.href),
@@ -63,30 +63,35 @@ async function init(opts: { root: URL[]; file: string; concurrency: number; user
     }
     const roots = internal_tree.get_roots().map(parse_url);
 
-    const queue = new Queue(internal_tree, internal, opts.concurrency);
-    queue.cache();
+    const queue = new Queue();
 
-    const progress = new Progress(invalid, external, internal_tree, internal, queue);
+    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, {
+        roots,
+        rps: opts.rps,
+        batch_size: 1000,
+        ua: opts.userAgent,
+    });
 
-    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, roots, opts.userAgent);
-    crawler.schedule();
+    const progress = new Progress(invalid, external, internal_tree, internal, queue, crawler);
 
-    do {
+    const crawling = crawler.run();
+    let crawling_completed = false;
+    crawling.finally(() => (crawling_completed = true));
+
+    while (!crawling_completed) {
         progress.render();
 
-        if (queue.is_empty()) {
-            break;
-        }
-
         await new Promise((x) => setTimeout(x, PROGRESS_INTERVAL));
-    } while (true);
+    }
+
+    await crawling;
 
     db.close();
 
     log.info("Completed");
 }
 
-async function run(opts: { file: string; concurrency: number; userAgent?: string }) {
+async function run(opts: { file: string; rps: number; userAgent?: string }) {
     log.info("Running", {
         ...opts,
     });
@@ -99,23 +104,28 @@ async function run(opts: { file: string; concurrency: number; userAgent?: string
     const internal = new Internal(db);
     const roots = internal_tree.get_roots().map(parse_url);
 
-    const queue = new Queue(internal_tree, internal, opts.concurrency);
-    queue.cache();
+    const queue = new Queue();
 
-    const progress = new Progress(invalid, external, internal_tree, internal, queue);
+    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, {
+        roots,
+        rps: opts.rps,
+        batch_size: 1000,
+        ua: opts.userAgent,
+    });
 
-    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, roots, opts.userAgent);
-    crawler.schedule();
+    const progress = new Progress(invalid, external, internal_tree, internal, queue, crawler);
 
-    do {
+    const crawling = crawler.run();
+    let crawling_completed = false;
+    crawling.finally(() => (crawling_completed = true));
+
+    while (!crawling_completed) {
         progress.render();
 
-        if (queue.is_empty()) {
-            break;
-        }
-
         await new Promise((x) => setTimeout(x, PROGRESS_INTERVAL));
-    } while (true);
+    }
+
+    await crawling;
 
     db.close();
 

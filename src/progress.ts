@@ -8,6 +8,7 @@ import type { External } from "./db/external.js";
 import type { InternalTree } from "./db/internal_tree.js";
 import type { Internal } from "./db/internal.js";
 import type { Queue } from "./queue.js";
+import type { Crawler } from "./crawler.js";
 
 const START = " [";
 const START_LEN = 2;
@@ -24,26 +25,30 @@ export class Progress {
         private readonly external: External,
         private readonly internal_tree: InternalTree,
         private readonly internal: Internal,
-        private readonly queue: Queue
+        private readonly queue: Queue,
+        private readonly crawler: Crawler
     ) {}
 
     render() {
-        const elapsed = pretty_ms(Date.now() - this.#started, { colonNotation: true, secondsDecimalDigits: 0 });
-
         const stats = {
             ...this.invalid.stats(),
             ...this.external.stats(),
             ...this.internal_tree.stats(),
             ...this.internal.stats(),
             ...this.queue.stats(),
+            ...this.crawler.stats(),
         };
 
-        const end_str = `${stats.internal_visited}/${stats.internal_pending} TOTAL: ${stats.internal_total} TREE: ${stats.tree_total} EXT: ${stats.external_total} INV: ${stats.invalid_total} CACHE: ${stats.queue_cache} ACT: ${stats.queue_active}`;
+        const start_str =
+            pretty_ms(Date.now() - this.#started, { colonNotation: true, secondsDecimalDigits: 0 }) +
+            ` ${stats.crawler_tps}`;
+
+        const end_str = `${stats.internal_visited}/${stats.internal_pending} TOTAL: ${stats.internal_total} TREE: ${stats.tree_total} EXT: ${stats.external_total} INV: ${stats.invalid_total} CACHE: ${stats.queue_items} ACT: ${stats.queue_popped}`;
 
         let progress = " ";
 
         if (log.isTTY) {
-            const width_available = log.bar_width() - elapsed.length - end_str.length - START_LEN - END_LEN;
+            const width_available = log.bar_width() - start_str.length - end_str.length - START_LEN - END_LEN;
             if (width_available >= 10) {
                 const d = width_available / stats.internal_total;
                 const w0 = Math.round(d * stats.internal_visited);
@@ -52,6 +57,6 @@ export class Progress {
             }
         }
 
-        log.bar(elapsed + progress + end_str);
+        log.bar(start_str + progress + end_str);
     }
 }
