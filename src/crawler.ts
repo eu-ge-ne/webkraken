@@ -5,7 +5,7 @@ import type { External } from "./db/external.js";
 import type { InternalTree } from "./db/internal_tree.js";
 import type { Internal } from "./db/internal.js";
 import type { Queue } from "./queue.js";
-import { ScraperError, type Scraper } from "./scraper.js";
+import { ScraperError, type Scraper } from "./scraper/index.js";
 import { try_parse_url, split_url } from "./url.js";
 import * as res_time from "./res_time.js";
 import { TickCounter } from "./tick_counter.js";

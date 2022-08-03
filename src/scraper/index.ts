@@ -1,56 +1,46 @@
-import got, { type Got, ExtendOptions } from "got";
-import { HttpsProxyAgent } from "hpagent";
+import got, { type Got, type Options } from "got";
 import type { Timings } from "@szmarczak/http-timer";
 import { parseHTML } from "linkedom";
 import UA from "user-agents";
 
+import { ProxyPool } from "./proxy_pool.js";
+
 export { RequestError as ScraperError } from "got";
 
-interface Options {
+interface ScraperOptions {
     ua?: string;
-    proxy?: URL;
+    proxy: URL[];
 }
 
-interface Result {
+interface ScraperResult {
     timings: Timings;
     http_code: number;
     hrefs: string[];
 }
 
 export class Scraper {
-    #http_client: Got;
+    #proxy_pool?: ProxyPool;
+    #got: Got;
 
-    constructor(private readonly opts: Options) {
-        const got_opts: ExtendOptions = {
+    constructor(private readonly opts: ScraperOptions) {
+        if (opts.proxy.length > 0) {
+            this.#proxy_pool = new ProxyPool(opts.proxy);
+        }
+
+        this.#got = got.extend({
             retry: {
                 limit: 0,
             },
             followRedirect: false,
             throwHttpErrors: false,
-        };
-
-        if (opts.proxy) {
-            got_opts.agent = {
-                https: new HttpsProxyAgent({
-                    keepAlive: true,
-                    keepAliveMsecs: 1000,
-                    maxSockets: 256,
-                    maxFreeSockets: 256,
-                    scheduling: "lifo",
-                    proxy: opts.proxy.origin,
-                }),
-            };
-        }
-
-        this.#http_client = got.extend(got_opts);
-    }
-
-    async scrape(href: string): Promise<Result> {
-        const res = await this.#http_client.get(href, {
-            headers: {
-                "User-Agent": this.opts.ua || new UA({ deviceCategory: "desktop" }).toString(),
+            hooks: {
+                beforeRequest: [this.#before_request.bind(this)],
             },
         });
+    }
+
+    async scrape(href: string): Promise<ScraperResult> {
+        const res = await this.#got.get(href);
 
         const timings = res.timings;
         const http_code = res.statusCode;
@@ -78,5 +68,12 @@ export class Scraper {
             http_code,
             hrefs: Array.from(hrefs),
         };
+    }
+
+    #before_request(opts: Options) {
+        opts.headers["user-agent"] = this.opts.ua || new UA({ deviceCategory: "desktop" }).toString();
+        if (this.#proxy_pool) {
+            opts.agent = this.#proxy_pool.get_agent();
+        }
     }
 }

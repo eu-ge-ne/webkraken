@@ -1,6 +1,14 @@
-Log info stdout
+Log notice stdout
 
-MaxCircuitDirtiness 60
+MaxCircuitDirtiness 30
 
 HTTPTunnelPort 0.0.0.0:9090
 HTTPTunnelPort 0.0.0.0:9091
+HTTPTunnelPort 0.0.0.0:9092
+HTTPTunnelPort 0.0.0.0:9093
+HTTPTunnelPort 0.0.0.0:9094
+HTTPTunnelPort 0.0.0.0:9095
+HTTPTunnelPort 0.0.0.0:9096
+HTTPTunnelPort 0.0.0.0:9097
+HTTPTunnelPort 0.0.0.0:9098
+HTTPTunnelPort 0.0.0.0:9099

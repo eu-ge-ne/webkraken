@@ -9,7 +9,7 @@ import { Internal } from "./db/internal.js";
 import { Queue } from "./queue.js";
 import { Progress } from "./progress.js";
 import { Crawler } from "./crawler.js";
-import { Scraper } from "./scraper.js";
+import { Scraper } from "./scraper/index.js";
 import { parse_url, split_url } from "./url.js";
 
 const PROGRESS_INTERVAL = 1_000;
@@ -33,13 +33,18 @@ program
     .requiredOption("-f --file <file>", "output file")
     .option("--rps [number]", "rps", Number.parseFloat, 1)
     .option("-ua  --user-agent [string]", "user agent")
-    .option("--proxy [url]", "proxy addr", (value: string) => {
-        try {
-            return new URL(value);
-        } catch (err) {
-            throw new Error(`Invalid URL: ${value}`);
-        }
-    })
+    .option(
+        "--proxy [url...]",
+        "proxy addrs",
+        (value: string, previous: URL[]) => {
+            try {
+                return previous.concat(new URL(value));
+            } catch (err) {
+                throw new Error(`Invalid URL: ${value}`);
+            }
+        },
+        []
+    )
     .action(init);
 
 program
@@ -47,22 +52,27 @@ program
     .requiredOption("-f --file <file>", "output file")
     .option("--rps [number]", "rps", Number.parseFloat, 1)
     .option("-ua  --user-agent [string]", "user agent")
-    .option("--proxy [url]", "proxy addr", (value: string) => {
-        try {
-            return new URL(value);
-        } catch (err) {
-            throw new Error(`Invalid URL: ${value}`);
-        }
-    })
+    .option(
+        "--proxy [url...]",
+        "proxy addrs",
+        (value: string, previous: URL[]) => {
+            try {
+                return previous.concat(new URL(value));
+            } catch (err) {
+                throw new Error(`Invalid URL: ${value}`);
+            }
+        },
+        []
+    )
     .action(run);
 
 await program.parseAsync();
 
-async function init(opts: { root: URL[]; file: string; rps: number; userAgent?: string; proxy?: URL }) {
+async function init(opts: { root: URL[]; file: string; rps: number; userAgent?: string; proxy: URL[] }) {
     log.info("Initializing", {
         ...opts,
         root: opts.root.map((x) => x.href),
-        proxy: opts.proxy?.origin,
+        proxy: opts.proxy.map((x) => x.origin),
     });
 
     const db = new Db(opts.file);
@@ -107,10 +117,10 @@ async function init(opts: { root: URL[]; file: string; rps: number; userAgent?: 
     log.info("Completed");
 }
 
-async function run(opts: { file: string; rps: number; userAgent?: string; proxy?: URL }) {
+async function run(opts: { file: string; rps: number; userAgent?: string; proxy: URL[] }) {
     log.info("Running", {
         ...opts,
-        proxy: opts.proxy?.origin,
+        proxy: opts.proxy.map((x) => x.origin),
     });
 
     const db = new Db(opts.file);
