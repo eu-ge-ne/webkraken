@@ -68,12 +68,16 @@ RETURNING "id";
         this.#pending = db.prepare<void>(`SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" = 0;`).get().count;
     }
 
-    stats() {
-        return {
-            internal_visited: this.#visited,
-            internal_pending: this.#pending,
-            internal_total: this.#items.size,
-        };
+    get visited_count() {
+        return this.#visited;
+    }
+
+    get pending_count() {
+        return this.#pending;
+    }
+
+    get total_count() {
+        return this.#items.size;
     }
 
     touch(item: { parent: number; chunk: string; qs: string }): number {

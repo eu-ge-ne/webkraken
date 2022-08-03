@@ -49,6 +49,7 @@
     "hpagent": "1.0.0",
     "linkedom": "0.14.12",
     "pretty-ms": "8.0.0",
+    "string-width": "5.1.2",
     "user-agents": "1.0.1096"
   }
 }

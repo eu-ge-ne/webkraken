@@ -4,6 +4,8 @@ import type { Timings } from "@szmarczak/http-timer";
 import { parseHTML } from "linkedom";
 import UA from "user-agents";
 
+export { RequestError as ScraperError } from "got";
+
 interface Options {
     ua?: string;
     proxy?: URL;

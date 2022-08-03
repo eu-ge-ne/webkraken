@@ -5,7 +5,7 @@ import type { External } from "./db/external.js";
 import type { InternalTree } from "./db/internal_tree.js";
 import type { Internal } from "./db/internal.js";
 import type { Queue } from "./queue.js";
-import type { Scraper } from "./scraper.js";
+import { ScraperError, type Scraper } from "./scraper.js";
 import { try_parse_url, split_url } from "./url.js";
 import * as res_time from "./res_time.js";
 import { TickCounter } from "./tick_counter.js";
@@ -20,6 +20,7 @@ export class Crawler {
     readonly #tick_counter = new TickCounter(100);
     readonly #rps_interval: number;
     #last_req = 0;
+    #error_count = 0;
 
     constructor(
         private readonly db: Db,
@@ -34,10 +35,12 @@ export class Crawler {
         this.#rps_interval = 1_000 / this.opts.rps;
     }
 
-    stats() {
-        return {
-            crawler_tps: this.#tick_counter.stats().tps,
-        };
+    get rps() {
+        return this.#tick_counter.stats().tps;
+    }
+
+    get error_count() {
+        return this.#error_count;
     }
 
     async run() {
@@ -101,9 +104,13 @@ export class Crawler {
                 }
             });
         } catch (err) {
-            log.error("Error", { visit_href, err });
-
-            process.exit(1);
+            if (err instanceof ScraperError) {
+                log.warn("Scrape error", { visit_href, err: err.toString() });
+                this.#error_count += 1;
+            } else {
+                log.error("Error", { visit_href, err });
+                process.exit(1);
+            }
         } finally {
             this.queue.delete(visit_id);
         }

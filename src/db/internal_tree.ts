@@ -37,10 +37,8 @@ RETURNING "id";
         }
     }
 
-    stats() {
-        return {
-            tree_total: this.#items.length,
-        };
+    get total_count() {
+        return this.#items.length;
     }
 
     get_roots(): string[] {

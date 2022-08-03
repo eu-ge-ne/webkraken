@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import figures from "figures";
+import string_width from "string-width";
 import pretty_ms from "pretty-ms";
 
 import * as log from "./log.js";
@@ -11,9 +12,7 @@ import type { Queue } from "./queue.js";
 import type { Crawler } from "./crawler.js";
 
 const START = " [";
-const START_LEN = 2;
 const END = "] ";
-const END_LEN = 2;
 const PR0 = chalk.dim(figures.squareCenter);
 const PR1 = chalk.dim(figures.lineDashed15);
 
@@ -33,24 +32,30 @@ export class Progress {
         const stats = {
             ...this.invalid.stats(),
             ...this.external.stats(),
-            ...this.internal_tree.stats(),
-            ...this.internal.stats(),
-            ...this.crawler.stats(),
         };
+
+        const error_count =
+            this.crawler.error_count === 0 ? chalk.gray(0) : chalk.yellowBright(this.crawler.error_count);
 
         const start_str =
             pretty_ms(Date.now() - this.#started, { colonNotation: true, secondsDecimalDigits: 0 }) +
-            ` ${stats.crawler_tps} ${this.queue.pop_count}`;
+            ` ${this.crawler.rps} ${this.queue.pop_count} ${error_count}`;
 
-        const end_str = `${stats.internal_visited}/${stats.internal_pending} TOTAL: ${stats.internal_total} TREE: ${stats.tree_total} EXT: ${stats.external_total} INV: ${stats.invalid_total}`;
+        const end_str = `${this.internal.visited_count}/${this.internal.pending_count} ${this.internal.total_count}|${this.internal_tree.total_count} EXT: ${stats.external_total} INV: ${stats.invalid_total}`;
 
         let progress = " ";
 
         if (log.isTTY) {
-            const width_available = log.bar_width() - start_str.length - end_str.length - START_LEN - END_LEN;
+            const width_available =
+                log.bar_width() -
+                string_width(start_str) -
+                string_width(end_str) -
+                string_width(START) -
+                string_width(END);
+
             if (width_available >= 10) {
-                const d = width_available / stats.internal_total;
-                const w0 = Math.round(d * stats.internal_visited);
+                const d = width_available / this.internal.total_count;
+                const w0 = Math.round(d * this.internal.visited_count);
                 const w1 = width_available - w0;
                 progress = START + PR0.repeat(w0) + PR1.repeat(w1) + END;
             }
