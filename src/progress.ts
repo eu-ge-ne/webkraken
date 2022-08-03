@@ -35,15 +35,14 @@ export class Progress {
             ...this.external.stats(),
             ...this.internal_tree.stats(),
             ...this.internal.stats(),
-            ...this.queue.stats(),
             ...this.crawler.stats(),
         };
 
         const start_str =
             pretty_ms(Date.now() - this.#started, { colonNotation: true, secondsDecimalDigits: 0 }) +
-            ` ${stats.crawler_tps}`;
+            ` ${stats.crawler_tps} ${this.queue.pop_count}`;
 
-        const end_str = `${stats.internal_visited}/${stats.internal_pending} TOTAL: ${stats.internal_total} TREE: ${stats.tree_total} EXT: ${stats.external_total} INV: ${stats.invalid_total} CACHE: ${stats.queue_items} ACT: ${stats.queue_popped}`;
+        const end_str = `${stats.internal_visited}/${stats.internal_pending} TOTAL: ${stats.internal_total} TREE: ${stats.tree_total} EXT: ${stats.external_total} INV: ${stats.invalid_total}`;
 
         let progress = " ";
 

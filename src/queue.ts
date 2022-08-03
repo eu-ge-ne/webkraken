@@ -6,18 +6,19 @@ interface Item {
 }
 
 export class Queue {
-    #popped = new Set<number>();
+    #pop = new Set<number>();
     #items: Item[] = [];
 
-    stats() {
-        return {
-            queue_popped: this.#popped.size,
-            queue_items: this.#items.length,
-        };
+    get pop_count() {
+        return this.#pop.size;
+    }
+
+    get item_count() {
+        return this.#items.length;
     }
 
     push(items: Item[]) {
-        this.#items = items.filter((x) => !this.#popped.has(x.id));
+        this.#items = items.filter((x) => !this.#pop.has(x.id));
     }
 
     pop(): [number, string] | undefined {
@@ -26,14 +27,14 @@ export class Queue {
             return;
         }
 
-        this.#popped.add(item.id);
+        this.#pop.add(item.id);
 
         return [item.id, item.href];
     }
 
     delete(id: number) {
-        assert(this.#popped.has(id));
+        assert(this.#pop.has(id));
 
-        this.#popped.delete(id);
+        this.#pop.delete(id);
     }
 }

@@ -5,7 +5,7 @@ import type { External } from "./db/external.js";
 import type { InternalTree } from "./db/internal_tree.js";
 import type { Internal } from "./db/internal.js";
 import type { Queue } from "./queue.js";
-import { scrape } from "./scrape.js";
+import type { Scraper } from "./scraper.js";
 import { try_parse_url, split_url } from "./url.js";
 import * as res_time from "./res_time.js";
 import { TickCounter } from "./tick_counter.js";
@@ -14,7 +14,6 @@ interface Options {
     readonly roots: URL[];
     readonly rps: number;
     readonly batch_size: number;
-    readonly ua?: string;
 }
 
 export class Crawler {
@@ -29,6 +28,7 @@ export class Crawler {
         private readonly internal_tree: InternalTree,
         private readonly internal: Internal,
         private readonly queue: Queue,
+        private readonly scraper: Scraper,
         private readonly opts: Options
     ) {
         this.#rps_interval = 1_000 / this.opts.rps;
@@ -46,7 +46,11 @@ export class Crawler {
 
             const item = this.#get_next_item();
             if (!item) {
-                break;
+                if (this.queue.pop_count === 0) {
+                    break;
+                } else {
+                    continue;
+                }
             }
 
             process.nextTick(this.visit.bind(this), ...item);
@@ -59,7 +63,7 @@ export class Crawler {
         log.debug(visit_href);
 
         try {
-            const { timings, http_code, hrefs } = await scrape(this.opts.ua, visit_href);
+            const { timings, http_code, hrefs } = await this.scraper.scrape(visit_href);
 
             if (http_code >= 200 && http_code <= 399) {
                 log.info("%d %s", http_code, visit_href);
@@ -111,14 +115,14 @@ export class Crawler {
         let item = this.queue.pop();
 
         if (!item) {
-            log.debug("Caching pending urls");
-
             const items = this.internal.select_pending(this.opts.batch_size).map((row) => ({
                 id: row.id,
                 href: this.internal_tree.build_href(row),
             }));
 
             this.queue.push(items);
+
+            log.debug("Cached %d pending urls", this.queue.item_count);
 
             item = this.queue.pop();
         }

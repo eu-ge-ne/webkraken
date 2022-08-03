@@ -14,6 +14,7 @@ function test_parse_url(href: string, expected: string) {
 test_parse_url("http://test.com", "http://test.com/");
 test_parse_url("http://test.com?a=1&b=2&c=3", "http://test.com/?a=1&b=2&c=3");
 test_parse_url("http://test.com?c=3&b=2&a=1", "http://test.com/?a=1&b=2&c=3");
+test_parse_url("http://test.com/a#b", "http://test.com/a");
 
 const macro_try_parse_url = test.macro((t, href: string, base: string, expected: string) => {
     const result = try_parse_url(href, base)?.href;
@@ -29,6 +30,7 @@ test_try_parse_url("", "http://test.com", "http://test.com/");
 test_try_parse_url("/", "http://test.com", "http://test.com/");
 test_try_parse_url("/?a=1&b=2&c=3", "http://test.com", "http://test.com/?a=1&b=2&c=3");
 test_try_parse_url("/?c=3&b=2&a=1", "http://test.com", "http://test.com/?a=1&b=2&c=3");
+test_try_parse_url("/a#b", "http://test.com", "http://test.com/a");
 
 const macro_split_url = test.macro((t, href: string, expected: { chunks: string[]; chunk: string; qs: string }) => {
     const result = split_url(new URL(href));

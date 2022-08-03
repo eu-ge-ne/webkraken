@@ -45,6 +45,7 @@
     "commander": "9.4.0",
     "figures": "4.0.1",
     "got": "12.2.0",
+    "hpagent": "1.0.0",
     "linkedom": "0.14.12",
     "pretty-ms": "8.0.0",
     "user-agents": "1.0.1086"

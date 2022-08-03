@@ -1,0 +1,6 @@
+Log info stdout
+
+MaxCircuitDirtiness 60
+
+HTTPTunnelPort 0.0.0.0:9090
+HTTPTunnelPort 0.0.0.0:9091

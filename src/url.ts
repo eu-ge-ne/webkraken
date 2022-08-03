@@ -3,6 +3,7 @@ import assert from "assert/strict";
 export function parse_url(href: string): URL {
     const url = new URL(href);
     url.searchParams.sort();
+    url.hash = "";
     return url;
 }
 
@@ -10,6 +11,7 @@ export function try_parse_url(href: string, base: string): URL | undefined {
     try {
         const url = new URL(href, base);
         url.searchParams.sort();
+        url.hash = "";
         return url;
     } catch (err) {
         // do nothing
