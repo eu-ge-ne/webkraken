@@ -16,7 +16,7 @@ import { parse_url_options, split_url } from "./url.js";
 
 const PROGRESS_INTERVAL = 1_000;
 
-program.name("webkraken").description("CLI crawler").version("0.0.8", "-v --version");
+program.name("webkraken").description("CLI crawler").version("0.0.9", "-v --version");
 
 program
     .command("init")
