@@ -3,13 +3,12 @@ import assert from "assert/strict";
 import { Statement } from "better-sqlite3";
 
 import type { Db } from "./db.js";
-import type { ResTime } from "../res_time.js";
 
 export class Internal {
     #st_all: Statement;
     #st_select_pending: Statement;
     #st_upsert: Statement<{ parent: number; chunk: string; qs: string }>;
-    #st_update_visited: Statement<{ id: number; http_code: number } & ResTime>;
+    #st_update_visited: Statement<{ id: number; status_code: number; time_total?: number }>;
     #st_link_insert: Statement<{ from: number; to: number }>;
 
     #items = new Map<string, number>();
@@ -38,8 +37,8 @@ LIMIT :limit;
 `);
 
         this.#st_upsert = db.prepare(`
-INSERT INTO "internal" ("parent", "chunk", "qs", "visited", "http_code", "time_total")
-VALUES (:parent, :chunk, :qs, 0, -1, -1)
+INSERT INTO "internal" ("parent", "chunk", "qs")
+VALUES (:parent, :chunk, :qs)
 ON CONFLICT ("parent", "chunk", "qs") DO NOTHING
 RETURNING "id";
 `);
@@ -47,7 +46,7 @@ RETURNING "id";
         this.#st_update_visited = db.prepare(`
 UPDATE "internal" SET
     "visited" = 1,
-    "http_code" = :http_code,
+    "status_code" = :status_code,
     "time_total" = :time_total
 WHERE "id" = :id
 RETURNING "id";
@@ -63,7 +62,9 @@ RETURNING "id";
             this.#items.set(item.parent + item.chunk + item.qs, item.id);
         }
 
-        this.#visited = db.prepare<void>(`SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" = 1;`).get().count;
+        this.#visited = db
+            .prepare<void>(`SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" != 0;`)
+            .get().count;
 
         this.#pending = db.prepare<void>(`SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" = 0;`).get().count;
     }
@@ -96,8 +97,8 @@ RETURNING "id";
         return this.#st_select_pending.all({ limit });
     }
 
-    update_visited(id: number, http_code: number, res_time: ResTime): void {
-        const result = this.#st_update_visited.get({ id, http_code, ...res_time });
+    update_visited(id: number, status_code: number, time_total?: number): void {
+        const result = this.#st_update_visited.get({ id, status_code, time_total });
         assert(typeof result.id === "number");
         this.#visited += 1;
         this.#pending -= 1;

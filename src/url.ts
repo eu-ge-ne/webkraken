@@ -18,6 +18,20 @@ export function try_parse_url(href: string, base: string): URL | undefined {
     }
 }
 
+export interface ParsedUrls {
+    valid: IterableIterator<URL>;
+    invalid: string[];
+}
+
+export function parse_urls(hrefs: string[], base: string): ParsedUrls {
+    const parsed = hrefs.map((href) => ({ href, url: try_parse_url(href, base) }));
+
+    const valid = new Map<string, URL>(parsed.filter((x) => x.url).map((x) => [x.url!.href, x.url!])).values();
+    const invalid = parsed.filter((x) => !x.url).map((x) => x.href);
+
+    return { valid, invalid };
+}
+
 export function split_url(url: URL): { chunks: string[]; chunk: string; qs: string } {
     const chunks: string[] = [];
 

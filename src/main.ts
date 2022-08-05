@@ -7,9 +7,9 @@ import { External } from "./db/external.js";
 import { InternalTree } from "./db/internal_tree.js";
 import { Internal } from "./db/internal.js";
 import { Queue } from "./queue.js";
-import { Progress } from "./progress.js";
+import { Request } from "./request/index.js";
 import { Crawler } from "./crawler.js";
-import { Scraper } from "./scraper/index.js";
+import { Progress } from "./progress.js";
 import { parse_url, split_url } from "./url.js";
 
 const PROGRESS_INTERVAL = 1_000;
@@ -90,9 +90,9 @@ async function init(opts: { root: URL[]; file: string; rps: number; userAgent?: 
     const roots = internal_tree.get_roots().map(parse_url);
 
     const queue = new Queue();
-    const scraper = new Scraper({ ua: opts.userAgent, proxy: opts.proxy });
+    const request = new Request({ ua: opts.userAgent, proxy: opts.proxy });
 
-    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, scraper, {
+    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, request, {
         roots,
         rps: opts.rps,
         batch_size: 1000,
@@ -132,9 +132,9 @@ async function run(opts: { file: string; rps: number; userAgent?: string; proxy:
     const roots = internal_tree.get_roots().map(parse_url);
 
     const queue = new Queue();
-    const scraper = new Scraper({ ua: opts.userAgent, proxy: opts.proxy });
+    const request = new Request({ ua: opts.userAgent, proxy: opts.proxy });
 
-    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, scraper, {
+    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, request, {
         roots,
         rps: opts.rps,
         batch_size: 1000,

@@ -42,13 +42,13 @@ INSERT INTO "internal_tree" ("id", "parent", "chunk")
 VALUES (0, 0, '');
 
 CREATE TABLE IF NOT EXISTS "internal" (
-    "id"         INTEGER PRIMARY KEY ASC,
-    "parent"     INTEGER NOT NULL REFERENCES "internal_tree" ("id") ON DELETE CASCADE,
-    "chunk"      TEXT    NOT NULL,
-    "qs"         TEXT    NOT NULL,
-    "visited"    INTEGER NOT NULL,
-    "http_code"  INTEGER NOT NULL,
-    "time_total" INTEGER NOT NULL,
+    "id"          INTEGER PRIMARY KEY ASC,
+    "parent"      INTEGER NOT NULL REFERENCES "internal_tree" ("id") ON DELETE CASCADE,
+    "chunk"       TEXT    NOT NULL,
+    "qs"          TEXT    NOT NULL,
+    "visited"     INTEGER NOT NULL DEFAULT 0,
+    "status_code" INTEGER NOT NULL DEFAULT -1,
+    "time_total"  INTEGER NOT NULL DEFAULT -1,
     UNIQUE ("parent", "chunk", "qs")
 );
 

@@ -2,7 +2,7 @@ import assert from "assert/strict";
 
 import { HttpsProxyAgent } from "hpagent";
 
-export class ProxyPool {
+export class Proxy {
     #agents: HttpsProxyAgent[];
     #i = 0;
 

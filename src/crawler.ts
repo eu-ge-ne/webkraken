@@ -5,10 +5,10 @@ import type { External } from "./db/external.js";
 import type { InternalTree } from "./db/internal_tree.js";
 import type { Internal } from "./db/internal.js";
 import type { Queue } from "./queue.js";
-import { ScraperError, type Scraper } from "./scraper/index.js";
-import { try_parse_url, split_url } from "./url.js";
-import * as res_time from "./res_time.js";
+import type { Request, RequestResult } from "./request/index.js";
+import { parse_urls, type ParsedUrls, split_url } from "./url.js";
 import { TickCounter } from "./tick_counter.js";
+import { parse_html } from "./html_parser.js";
 
 interface Options {
     readonly roots: URL[];
@@ -29,7 +29,7 @@ export class Crawler {
         private readonly internal_tree: InternalTree,
         private readonly internal: Internal,
         private readonly queue: Queue,
-        private readonly scraper: Scraper,
+        private readonly request: Request,
         private readonly opts: Options
     ) {
         this.#rps_interval = 1_000 / this.opts.rps;
@@ -52,6 +52,8 @@ export class Crawler {
                 if (this.queue.pop_count === 0) {
                     break;
                 } else {
+                    // TODO: refactor
+                    await new Promise((x) => setTimeout(x, 100));
                     continue;
                 }
             }
@@ -63,59 +65,52 @@ export class Crawler {
     }
 
     async visit(visit_id: number, visit_href: string) {
-        log.debug(visit_href);
-
         try {
-            const { timings, http_code, hrefs } = await this.scraper.scrape(visit_href);
+            log.debug(visit_href);
 
-            if (http_code >= 200 && http_code <= 399) {
-                log.info("%d %s", http_code, visit_href);
-            } else {
-                log.warn("%d %s", http_code, visit_href);
-            }
+            let res: RequestResult;
 
-            const parsed = hrefs.map((href) => ({ href, url: try_parse_url(href, visit_href) }));
-            const invalid = parsed.filter((x) => !x.url).map((x) => x.href);
-            const valid = new Map<string, URL>(parsed.filter((x) => x.url).map((x) => [x.url!.href, x.url!]));
-
-            for (const href of invalid) {
-                log.warn("Invalid url", { visit_href, href });
-            }
-
-            this.db.transaction(() => {
-                this.internal.update_visited(visit_id, http_code, res_time.from_timings(timings));
-
-                for (const url of valid.values()) {
-                    const is_internal = this.opts.roots.some((root) => root.origin === url.origin);
-                    if (is_internal) {
-                        const item = split_url(url);
-                        const parent = this.internal_tree.touch(item.chunks);
-                        const to_id = this.internal.touch({ parent, chunk: item.chunk, qs: item.qs });
-                        this.internal.link_insert(visit_id, to_id);
-                    } else {
-                        const to_id = this.external.touch(url.href);
-                        this.external.link_insert(visit_id, to_id);
-                    }
-                }
-
-                for (const href of invalid) {
-                    const to_id = this.invalid.touch(href);
-                    this.invalid.link_insert(visit_id, to_id);
-                }
-            });
-        } catch (err) {
-            if (err instanceof ScraperError) {
-                log.warn("Scrape error", { visit_href, err: err.toString() });
+            try {
+                res = await this.request.get(visit_href);
+            } catch (err) {
+                log.warn("Scrape error", { visit_href, err });
                 this.#error_count += 1;
-            } else {
-                log.error("Error", { visit_href, err });
-                process.exit(1);
+                return;
             }
+
+            const code = res.status_code;
+
+            let urls: ParsedUrls | undefined;
+
+            if (code >= 200 && code <= 299) {
+                log.info("%d %s", code, visit_href);
+
+                const hrefs = parse_html(res.body).hrefs;
+                urls = parse_urls(hrefs, visit_href);
+            } else if (code >= 300 && code <= 399) {
+                log.info("%d %s", code, visit_href);
+
+                urls = parse_urls([res.location], visit_href);
+            } else {
+                log.warn("%d %s", code, visit_href);
+            }
+
+            if (urls) {
+                for (const href of urls.invalid) {
+                    log.warn("Invalid url", { visit_href, href });
+                }
+            }
+
+            this.#visited(visit_id, res, urls);
+        } catch (err) {
+            log.error("Error", { visit_href, err });
+
+            process.exit(1);
         } finally {
             this.queue.delete(visit_id);
-        }
 
-        this.#tick_counter.tick();
+            this.#tick_counter.tick();
+        }
     }
 
     #get_next_item() {
@@ -143,5 +138,31 @@ export class Crawler {
             //log.debug("Waiting", delay, "ms");
             await new Promise((x) => setTimeout(x, delay));
         }
+    }
+
+    #visited(visit_id: number, res: RequestResult, urls?: ParsedUrls) {
+        this.db.transaction(() => {
+            this.internal.update_visited(visit_id, res.status_code, res.time_total);
+
+            if (urls) {
+                for (const url of urls.valid) {
+                    const is_internal = this.opts.roots.some((root) => root.origin === url.origin);
+                    if (is_internal) {
+                        const item = split_url(url);
+                        const parent = this.internal_tree.touch(item.chunks);
+                        const to_id = this.internal.touch({ parent, chunk: item.chunk, qs: item.qs });
+                        this.internal.link_insert(visit_id, to_id);
+                    } else {
+                        const to_id = this.external.touch(url.href);
+                        this.external.link_insert(visit_id, to_id);
+                    }
+                }
+
+                for (const href of urls.invalid) {
+                    const to_id = this.invalid.touch(href);
+                    this.invalid.link_insert(visit_id, to_id);
+                }
+            }
+        });
     }
 }
