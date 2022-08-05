@@ -26,7 +26,7 @@
     "build:tsc": "tsc",
     "pretest": "run-s build",
     "test": "ava build/**.test.js",
-    "prepublishOnly": "run-s build test",
+    "prepublishOnly": "run-s test",
     "prestart": "run-s build",
     "start": "node --enable-source-maps build/main.js"
   },
