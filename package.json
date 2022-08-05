@@ -1,7 +1,7 @@
 {
   "name": "webkraken",
   "version": "0.0.9",
-  "description": "CLI crawler",
+  "description": "web crawler",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eu-ge-ne/webkraken.git"
