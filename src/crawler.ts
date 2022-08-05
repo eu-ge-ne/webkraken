@@ -11,7 +11,6 @@ import { TickCounter } from "./tick_counter.js";
 import { parse_html } from "./html_parser.js";
 
 interface Options {
-    readonly roots: URL[];
     readonly rps: number;
     readonly batch_size: number;
 }
@@ -146,7 +145,7 @@ export class Crawler {
 
             if (urls) {
                 for (const url of urls.valid) {
-                    const is_internal = this.opts.roots.some((root) => root.origin === url.origin);
+                    const is_internal = this.internal_tree.origins.includes(url.origin);
                     if (is_internal) {
                         const item = split_url(url);
                         const parent = this.internal_tree.touch(item.chunks);

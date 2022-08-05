@@ -5,16 +5,17 @@ import { Statement } from "better-sqlite3";
 import type { Db } from "./db.js";
 
 interface Item {
-    id: number;
-    parent: number;
-    chunk: string;
+    readonly id: number;
+    readonly parent: number;
+    readonly chunk: string;
 }
 
 export class InternalTree {
-    #st_all: Statement;
-    #st_insert: Statement<{ parent: number; chunk: string }>;
+    readonly #st_all: Statement;
+    readonly #st_insert: Statement<{ parent: number; chunk: string }>;
 
-    #items: Item[] = [];
+    readonly #items: Item[] = [];
+    readonly #origins: string[] = [];
 
     constructor(db: Db) {
         this.#st_all = db.prepare(`
@@ -34,6 +35,10 @@ RETURNING "id";
 
         for (const item of this.#all()) {
             this.#items.push(item);
+
+            if (item.parent === 0) {
+                this.#origins.push(item.chunk);
+            }
         }
     }
 
@@ -41,8 +46,8 @@ RETURNING "id";
         return this.#items.length;
     }
 
-    get_roots(): string[] {
-        return this.#items.filter((x) => x.parent === 0).map((x) => x.chunk);
+    get origins() {
+        return this.#origins;
     }
 
     touch(chunks: string[]): number {

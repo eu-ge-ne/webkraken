@@ -1,3 +1,5 @@
+import fs from "node:fs";
+
 import { program } from "commander";
 
 import * as log from "./log.js";
@@ -10,7 +12,7 @@ import { Queue } from "./queue.js";
 import { Request } from "./request/index.js";
 import { Crawler } from "./crawler.js";
 import { Progress } from "./progress.js";
-import { parse_url, split_url } from "./url.js";
+import { parse_url_options, split_url } from "./url.js";
 
 const PROGRESS_INTERVAL = 1_000;
 
@@ -18,103 +20,48 @@ program.name("webkraken").description("CLI crawler").version("0.0.8", "-v --vers
 
 program
     .command("init")
-    .requiredOption(
-        "-r --root <url...>",
-        "crawl root",
-        (value: string, previous: URL[]) => {
-            try {
-                return previous.concat(parse_url(value));
-            } catch (err) {
-                throw new Error(`Invalid URL: ${value}`);
-            }
-        },
-        []
-    )
-    .requiredOption("-f --file <file>", "output file")
-    .option("--rps [number]", "rps", Number.parseFloat, 1)
-    .option("-ua  --user-agent [string]", "user agent")
-    .option(
-        "--proxy [url...]",
-        "proxy addrs",
-        (value: string, previous: URL[]) => {
-            try {
-                return previous.concat(new URL(value));
-            } catch (err) {
-                throw new Error(`Invalid URL: ${value}`);
-            }
-        },
-        []
-    )
+    .description("create crawl data file")
+    .requiredOption("--file <file>", "file path")
+    .requiredOption("--origin <url...>", "origins", parse_url_options, [])
     .action(init);
 
 program
     .command("run")
-    .requiredOption("-f --file <file>", "output file")
+    .description("run crawling")
+    .requiredOption("--file <file>", "file path")
     .option("--rps [number]", "rps", Number.parseFloat, 1)
-    .option("-ua  --user-agent [string]", "user agent")
-    .option(
-        "--proxy [url...]",
-        "proxy addrs",
-        (value: string, previous: URL[]) => {
-            try {
-                return previous.concat(new URL(value));
-            } catch (err) {
-                throw new Error(`Invalid URL: ${value}`);
-            }
-        },
-        []
-    )
+    .option("-ua --user-agent [string]", "user agent")
+    .option("--proxy [url...]", "proxy addr", parse_url_options, [])
     .action(run);
 
 await program.parseAsync();
 
-async function init(opts: { root: URL[]; file: string; rps: number; userAgent?: string; proxy: URL[] }) {
+async function init(opts: { file: string; origin: URL[] }) {
+    if (fs.existsSync(opts.file)) {
+        log.error("File %s already exists", opts.file);
+        process.exit(1);
+    }
+
     log.info("Initializing", {
         ...opts,
-        root: opts.root.map((x) => x.href),
-        proxy: opts.proxy.map((x) => x.origin),
+        origin: opts.origin.map((x) => x.href),
     });
 
     const db = new Db(opts.file);
     db.init();
 
-    const invalid = new Invalid(db);
-    const external = new External(db);
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
-    for (const root of opts.root) {
-        const item = split_url(root);
-        const parent = internal_tree.touch(item.chunks);
-        internal.touch({ parent, chunk: item.chunk, qs: item.qs });
+
+    for (const url of opts.origin) {
+        const { chunks, chunk, qs } = split_url(new URL(url.origin));
+        const parent = internal_tree.touch(chunks);
+        internal.touch({ parent, chunk, qs });
     }
-    const roots = internal_tree.get_roots().map(parse_url);
-
-    const queue = new Queue();
-    const request = new Request({ ua: opts.userAgent, proxy: opts.proxy });
-
-    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, request, {
-        roots,
-        rps: opts.rps,
-        batch_size: 1000,
-    });
-
-    const progress = new Progress(invalid, external, internal_tree, internal, queue, crawler);
-
-    const crawling = crawler.run();
-    let crawling_completed = false;
-    crawling.finally(() => (crawling_completed = true));
-
-    while (!crawling_completed) {
-        progress.render();
-
-        await new Promise((x) => setTimeout(x, PROGRESS_INTERVAL));
-    }
-
-    await crawling;
 
     db.close();
 
-    log.info("Completed");
+    log.info("File %s created successfully", opts.file);
 }
 
 async function run(opts: { file: string; rps: number; userAgent?: string; proxy: URL[] }) {
@@ -129,13 +76,11 @@ async function run(opts: { file: string; rps: number; userAgent?: string; proxy:
     const external = new External(db);
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
-    const roots = internal_tree.get_roots().map(parse_url);
 
     const queue = new Queue();
     const request = new Request({ ua: opts.userAgent, proxy: opts.proxy });
 
     const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, request, {
-        roots,
         rps: opts.rps,
         batch_size: 1000,
     });
