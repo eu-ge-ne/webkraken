@@ -36,9 +36,17 @@ export const info: LogFn = isTTY
     ? (msg, ...params) => bar_wrap(log.info, FIG_INFO + now() + msg, ...params)
     : (msg, ...params) => log.info(FIG_INFO + now() + msg, ...params);
 
-export const debug: LogFn = isTTY
-    ? (msg, ...params) => bar_wrap(log.debug, FIG_DEBUG + now() + chalk.gray(msg), ...params)
-    : (msg, ...params) => log.info(FIG_DEBUG + now() + chalk.gray(msg), ...params);
+export let debug: LogFn = () => {};
+
+export function verbose(is_verbose: boolean) {
+    if (is_verbose) {
+        debug = isTTY
+            ? (msg, ...params) => bar_wrap(log.debug, FIG_DEBUG + now() + chalk.gray(msg), ...params)
+            : (msg, ...params) => log.info(FIG_DEBUG + now() + chalk.gray(msg), ...params);
+    } else {
+        debug = () => {};
+    }
+}
 
 export function bar(content: string) {
     bar_content = content;
