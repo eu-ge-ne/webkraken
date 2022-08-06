@@ -9,6 +9,7 @@ import type { Request, RequestResult } from "./request/index.js";
 import { parse_urls, type ParsedUrls, split_url } from "./url.js";
 import { TickCounter } from "./tick_counter.js";
 import { parse_html } from "./html_parser.js";
+import { wait } from "./wait.js";
 
 interface Options {
     readonly rps: number;
@@ -52,7 +53,7 @@ export class Crawler {
                     break;
                 } else {
                     // TODO: refactor
-                    await new Promise((x) => setTimeout(x, 100));
+                    await wait(100);
                     continue;
                 }
             }
@@ -135,7 +136,7 @@ export class Crawler {
         const delay = this.#last_req + this.#rps_interval - Date.now();
         if (delay > 0) {
             //log.debug("Waiting", delay, "ms");
-            await new Promise((x) => setTimeout(x, delay));
+            await wait(delay);
         }
     }
 

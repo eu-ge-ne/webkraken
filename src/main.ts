@@ -13,6 +13,7 @@ import { Request } from "./request/index.js";
 import { Crawler } from "./crawler.js";
 import { Progress } from "./progress.js";
 import { parse_url_options, split_url } from "./url.js";
+import { wait } from "./wait.js";
 
 const PROGRESS_INTERVAL = 1_000;
 
@@ -122,7 +123,7 @@ async function run(_: unknown, command: Command) {
     while (!crawling_completed) {
         progress.render();
 
-        await new Promise((x) => setTimeout(x, PROGRESS_INTERVAL));
+        await wait(PROGRESS_INTERVAL);
     }
 
     await crawling;
