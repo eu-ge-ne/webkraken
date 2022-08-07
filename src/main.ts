@@ -20,7 +20,7 @@ const PROGRESS_INTERVAL = 1_000;
 program
     .name("webkraken")
     .description("web crawler")
-    .version("0.0.9", "-v --version")
+    .version("0.0.10", "-v --version")
     .option("--verbose", "verbose output");
 
 interface GlobalOptions {
