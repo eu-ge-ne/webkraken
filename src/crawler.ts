@@ -148,9 +148,9 @@ export class Crawler {
                 for (const url of urls.valid) {
                     const is_internal = this.internal_tree.origins.includes(url.origin);
                     if (is_internal) {
-                        const item = split_url(url);
-                        const parent = this.internal_tree.touch(item.chunks);
-                        const to_id = this.internal.touch({ parent, chunk: item.chunk, qs: item.qs });
+                        const { chunks, chunk, qs } = split_url(url);
+                        const parent = this.internal_tree.touch(chunks);
+                        const to_id = this.internal.touch({ parent, chunk, qs });
                         this.internal.link_insert(visit_id, to_id);
                     } else {
                         const to_id = this.external.touch(url.href);
