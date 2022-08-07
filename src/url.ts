@@ -18,9 +18,9 @@ export function try_parse_url(href: string, base: string): URL | undefined {
     }
 }
 
-export function parse_url_options(value: string, prev: URL[]) {
+export function parse_url_option(value: string, prev?: URL[]) {
     try {
-        return prev.concat(new URL(value));
+        return (prev ?? []).concat(new URL(value));
     } catch (err) {
         throw new Error(`Invalid URL: ${value}`);
     }

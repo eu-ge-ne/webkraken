@@ -9,10 +9,10 @@ import { External } from "./db/external.js";
 import { InternalTree } from "./db/internal_tree.js";
 import { Internal } from "./db/internal.js";
 import { Queue } from "./queue.js";
-import { Request } from "./request/index.js";
+import { Request } from "./request.js";
 import { Crawler } from "./crawler.js";
 import { Progress } from "./progress.js";
-import { parse_url_options, split_url } from "./url.js";
+import { parse_url_option, split_url } from "./url.js";
 import { wait } from "./wait.js";
 
 const PROGRESS_INTERVAL = 1_000;
@@ -31,7 +31,7 @@ program
     .command("init")
     .description("create crawl data file")
     .requiredOption("--file <file>", "file path")
-    .requiredOption("--origin <url...>", "origins", parse_url_options, [])
+    .requiredOption("--origin <url...>", "origins", parse_url_option, [])
     .action(init);
 
 interface InitOptions extends GlobalOptions {
@@ -45,14 +45,14 @@ program
     .requiredOption("--file <file>", "file path")
     .option("--rps [number]", "rps", Number.parseFloat, 1)
     .option("-ua --user-agent [string]", "user agent")
-    .option("--proxy [url...]", "proxy addr", parse_url_options, [])
+    .option("--proxy [url...]", "proxy addr", parse_url_option)
     .action(run);
 
 interface RunOptions extends GlobalOptions {
     file: string;
     rps: number;
     userAgent?: string;
-    proxy: URL[];
+    proxy?: URL[];
 }
 
 await program.parseAsync();
@@ -96,7 +96,7 @@ async function run(_: unknown, command: Command) {
 
     log.info("Running", {
         ...opts,
-        proxy: opts.proxy.map((x) => x.origin),
+        proxy: opts.proxy?.map((x) => x.origin),
     });
 
     const db = new Db(opts.file);
@@ -107,7 +107,10 @@ async function run(_: unknown, command: Command) {
     const internal = new Internal(db);
 
     const queue = new Queue();
-    const request = new Request({ ua: opts.userAgent, proxy: opts.proxy });
+    const request = new Request({
+        user_agent: opts.userAgent,
+        proxy: opts.proxy,
+    });
 
     const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, request, {
         rps: opts.rps,

@@ -1,6 +1,6 @@
 import test from "ava";
 
-import { parse_url, try_parse_url, split_url } from "./url.js";
+import { parse_url, try_parse_url, parse_url_option, split_url } from "./url.js";
 
 const macro_parse_url = test.macro((t, href: string, expected: string) => {
     const result = parse_url(href).href;
@@ -31,6 +31,23 @@ test_try_parse_url("/", "http://test.com", "http://test.com/");
 test_try_parse_url("/?a=1&b=2&c=3", "http://test.com", "http://test.com/?a=1&b=2&c=3");
 test_try_parse_url("/?c=3&b=2&a=1", "http://test.com", "http://test.com/?a=1&b=2&c=3");
 test_try_parse_url("/a#b", "http://test.com", "http://test.com/a");
+
+const macro_parse_url_option = test.macro((t, href: string, prev: URL[] | undefined, expected: string[]) => {
+    const result = parse_url_option(href, prev);
+    t.deepEqual(
+        result.map((x) => x.href),
+        expected
+    );
+});
+
+function test_parse_url_option(href: string, prev: URL[] | undefined, expected: string[]) {
+    const p = prev ? prev.map((x) => x.href) : "undefined";
+    test(`parse_url_option: ${href} ${p}`, macro_parse_url_option, href, prev, expected);
+}
+
+test_parse_url_option("http://test.com", [], ["http://test.com/"]);
+test_parse_url_option("http://test.com", [new URL("http://test2.com")], ["http://test2.com/", "http://test.com/"]);
+test_parse_url_option("http://test.com", undefined, ["http://test.com/"]);
 
 const macro_split_url = test.macro((t, href: string, expected: { chunks: string[]; chunk: string; qs: string }) => {
     const result = split_url(new URL(href));

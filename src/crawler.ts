@@ -5,7 +5,7 @@ import type { External } from "./db/external.js";
 import type { InternalTree } from "./db/internal_tree.js";
 import type { Internal } from "./db/internal.js";
 import type { Queue } from "./queue.js";
-import type { Request, RequestResult } from "./request/index.js";
+import type { Request, RequestResult } from "./request.js";
 import { parse_urls, type ParsedUrls, split_url } from "./url.js";
 import { TickCounter } from "./tick_counter.js";
 import { parse_html } from "./html_parser.js";
