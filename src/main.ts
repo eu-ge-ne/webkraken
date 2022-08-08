@@ -28,19 +28,18 @@ interface GlobalOptions {
 program
     .command("init")
     .description("create crawl data file")
-    .requiredOption("--file <file>", "file path")
+    .argument("<file>", "file path")
     .requiredOption("--origin <url...>", "origins", parse_url_option, [])
     .action(init);
 
 interface InitOptions extends GlobalOptions {
-    file: string;
     origin: URL[];
 }
 
 program
     .command("run")
     .description("run crawling")
-    .requiredOption("--file <file>", "file path")
+    .argument("<file>", "file path")
     .option("--rps [number]", "rps", Number.parseFloat, 1)
     .option("--user-agent [string]", "user agent")
     .option("--proxy [url...]", "proxy addr", parse_url_option)
@@ -48,7 +47,6 @@ program
     .action(run);
 
 interface RunOptions extends GlobalOptions {
-    file: string;
     rps: number;
     userAgent?: string;
     proxy?: URL[];
@@ -57,22 +55,25 @@ interface RunOptions extends GlobalOptions {
 
 await program.parseAsync();
 
-async function init(_: unknown, command: Command) {
+async function init(file: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<InitOptions>();
 
     log.verbose(opts.verbose);
 
-    if (fs.existsSync(opts.file)) {
-        log.error("File %s already exists", opts.file);
+    if (fs.existsSync(file)) {
+        log.error("File %s already exists", file);
         process.exit(1);
     }
 
     log.info("Initializing", {
-        ...opts,
-        origin: opts.origin.map((x) => x.origin),
+        file,
+        options: {
+            ...opts,
+            origin: opts.origin.map((x) => x.origin),
+        },
     });
 
-    const db = new Db(opts.file);
+    const db = new Db(file);
     db.init();
 
     const internal_tree = new InternalTree(db);
@@ -86,22 +87,30 @@ async function init(_: unknown, command: Command) {
 
     db.close();
 
-    log.info("File %s created successfully", opts.file);
+    log.info("File %s created successfully", file);
 }
 
-async function run(_: unknown, command: Command) {
+async function run(file: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<RunOptions>();
 
     const progress_interval = opts.progress * 1_000;
 
     log.verbose(opts.verbose);
 
+    if (!fs.existsSync(file)) {
+        log.error("File %s not found", file);
+        process.exit(1);
+    }
+
     log.info("Running", {
-        ...opts,
-        proxy: opts.proxy?.map((x) => x.origin),
+        file,
+        options: {
+            ...opts,
+            proxy: opts.proxy?.map((x) => x.origin),
+        },
     });
 
-    const db = new Db(opts.file);
+    const db = new Db(file);
 
     const invalid = new Invalid(db);
     const external = new External(db);
