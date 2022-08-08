@@ -8,7 +8,7 @@ import type { Queue } from "./queue.js";
 import type { Request, RequestResult } from "./request.js";
 import { parse_urls, type ParsedUrls, split_url } from "./url.js";
 import { Tick } from "./tick.js";
-import { parse_html } from "./html_parser.js";
+import { parse_html } from "./parser.js";
 import { wait } from "./wait.js";
 
 interface Options {
