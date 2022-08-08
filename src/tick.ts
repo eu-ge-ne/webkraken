@@ -1,9 +1,9 @@
-export class TickCounter {
+export class Tick {
     #ticks: number[] = [];
 
     constructor(private readonly size: number) {}
 
-    stats() {
+    get tps() {
         let tps = 0;
 
         if (this.#ticks.length > 1) {
@@ -11,9 +11,7 @@ export class TickCounter {
             tps = this.#ticks.length / interval;
         }
 
-        return {
-            tps: tps.toFixed(2),
-        };
+        return tps;
     }
 
     tick() {

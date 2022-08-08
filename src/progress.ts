@@ -34,12 +34,12 @@ export class Progress {
             ...this.external.stats(),
         };
 
+        const elapsed = pretty_ms(Date.now() - this.#started, { colonNotation: true, secondsDecimalDigits: 0 });
+        const rps = this.crawler.rps.toFixed(2);
         const error_count =
             this.crawler.error_count === 0 ? chalk.gray(0) : chalk.yellowBright(this.crawler.error_count);
 
-        const start_str =
-            pretty_ms(Date.now() - this.#started, { colonNotation: true, secondsDecimalDigits: 0 }) +
-            ` ${this.crawler.rps} ${this.queue.pop_count} ${error_count}`;
+        const start_str = `${elapsed} ${rps} ${this.queue.pop_count} ${error_count}`;
 
         const end_str = `${this.internal.visited_count}/${this.internal.pending_count} ${this.internal.total_count}|${this.internal_tree.total_count} EXT: ${stats.external_total} INV: ${stats.invalid_total}`;
 

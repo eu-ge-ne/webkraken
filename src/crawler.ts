@@ -7,7 +7,7 @@ import type { Internal } from "./db/internal.js";
 import type { Queue } from "./queue.js";
 import type { Request, RequestResult } from "./request.js";
 import { parse_urls, type ParsedUrls, split_url } from "./url.js";
-import { TickCounter } from "./tick_counter.js";
+import { Tick } from "./tick.js";
 import { parse_html } from "./html_parser.js";
 import { wait } from "./wait.js";
 
@@ -17,7 +17,7 @@ interface Options {
 }
 
 export class Crawler {
-    readonly #tick_counter = new TickCounter(100);
+    readonly #tick = new Tick(100);
     readonly #rps_interval: number;
     #last_req = 0;
     #error_count = 0;
@@ -36,7 +36,7 @@ export class Crawler {
     }
 
     get rps() {
-        return this.#tick_counter.stats().tps;
+        return this.#tick.tps;
     }
 
     get error_count() {
@@ -109,7 +109,7 @@ export class Crawler {
         } finally {
             this.queue.delete(visit_id);
 
-            this.#tick_counter.tick();
+            this.#tick.tick();
         }
     }
 
