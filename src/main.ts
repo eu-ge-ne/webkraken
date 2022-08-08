@@ -15,8 +15,6 @@ import { Progress } from "./progress.js";
 import { parse_url_option, split_url } from "./url.js";
 import { wait } from "./wait.js";
 
-const PROGRESS_INTERVAL = 1_000;
-
 program
     .name("webkraken")
     .description("web crawler")
@@ -44,8 +42,9 @@ program
     .description("run crawling")
     .requiredOption("--file <file>", "file path")
     .option("--rps [number]", "rps", Number.parseFloat, 1)
-    .option("-ua --user-agent [string]", "user agent")
+    .option("--user-agent [string]", "user agent")
     .option("--proxy [url...]", "proxy addr", parse_url_option)
+    .option("--progress [number]", "progress interval in seconds", (x) => Number.parseInt(x, 10), 1)
     .action(run);
 
 interface RunOptions extends GlobalOptions {
@@ -53,6 +52,7 @@ interface RunOptions extends GlobalOptions {
     rps: number;
     userAgent?: string;
     proxy?: URL[];
+    progress: number;
 }
 
 await program.parseAsync();
@@ -92,6 +92,8 @@ async function init(_: unknown, command: Command) {
 async function run(_: unknown, command: Command) {
     const opts = command.optsWithGlobals<RunOptions>();
 
+    const progress_interval = opts.progress * 1_000;
+
     log.verbose(opts.verbose);
 
     log.info("Running", {
@@ -126,7 +128,7 @@ async function run(_: unknown, command: Command) {
     while (!crawling_completed) {
         progress.render();
 
-        await wait(PROGRESS_INTERVAL);
+        await wait(progress_interval);
     }
 
     await crawling;
