@@ -36,6 +36,10 @@ interface InitOptions extends GlobalOptions {
     origin: URL[];
 }
 
+program.command("info").description("show crawl data file info").argument("<file>", "file path").action(info);
+
+interface InfoOptions extends GlobalOptions {}
+
 program
     .command("run")
     .description("run crawling")
@@ -90,6 +94,46 @@ async function init(file: string, _: unknown, command: Command) {
     log.info("File %s created successfully", file);
 }
 
+async function info(file: string, _: unknown, command: Command) {
+    const opts = command.optsWithGlobals<InfoOptions>();
+
+    log.verbose(opts.verbose);
+
+    if (!fs.existsSync(file)) {
+        log.error("File %s not found", file);
+        process.exit(1);
+    }
+
+    log.info("Info", {
+        file,
+    });
+
+    const db = new Db(file);
+
+    const invalid = new Invalid(db);
+    const external = new External(db);
+    const internal_tree = new InternalTree(db);
+    const internal = new Internal(db);
+
+    log.info("Origins", { origins: internal_tree.origins });
+
+    log.info("Internal", {
+        total: internal.total_count,
+        visited: internal.visited_count,
+        pending: internal.pending_count,
+    });
+
+    log.info("External", {
+        total: external.total_count,
+    });
+
+    log.info("Invalid", {
+        total: invalid.total_count,
+    });
+
+    db.close();
+}
+
 async function run(file: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<RunOptions>();
 
@@ -128,7 +172,7 @@ async function run(file: string, _: unknown, command: Command) {
         batch_size: 1000,
     });
 
-    const progress = new Progress(invalid, external, internal_tree, internal, queue, crawler);
+    const progress = new Progress(internal_tree, internal, queue, crawler);
 
     const crawling = crawler.run();
     let crawling_completed = false;

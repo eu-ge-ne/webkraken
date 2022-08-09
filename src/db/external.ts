@@ -36,10 +36,8 @@ RETURNING "id";
         }
     }
 
-    stats() {
-        return {
-            external_total: this.#items.size,
-        };
+    get total_count() {
+        return this.#items.size;
     }
 
     touch(href: string): number {

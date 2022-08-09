@@ -4,8 +4,6 @@ import string_width from "string-width";
 import pretty_ms from "pretty-ms";
 
 import * as log from "./log.js";
-import type { Invalid } from "./db/invalid.js";
-import type { External } from "./db/external.js";
 import type { InternalTree } from "./db/internal_tree.js";
 import type { Internal } from "./db/internal.js";
 import type { Queue } from "./queue.js";
@@ -20,8 +18,6 @@ export class Progress {
     #started = Date.now();
 
     constructor(
-        private readonly invalid: Invalid,
-        private readonly external: External,
         private readonly internal_tree: InternalTree,
         private readonly internal: Internal,
         private readonly queue: Queue,
@@ -29,11 +25,6 @@ export class Progress {
     ) {}
 
     render() {
-        const stats = {
-            ...this.invalid.stats(),
-            ...this.external.stats(),
-        };
-
         const elapsed = pretty_ms(Date.now() - this.#started, { colonNotation: true, secondsDecimalDigits: 0 });
         const rps = this.crawler.rps.toFixed(2);
         const error_count =
@@ -41,7 +32,7 @@ export class Progress {
 
         const start_str = `${elapsed} ${rps} ${this.queue.pop_count} ${error_count}`;
 
-        const end_str = `${this.internal.visited_count}/${this.internal.pending_count} ${this.internal.total_count}|${this.internal_tree.total_count} EXT: ${stats.external_total} INV: ${stats.invalid_total}`;
+        const end_str = `${this.internal.visited_count}/${this.internal.pending_count} ${this.internal.total_count}|${this.internal_tree.total_count}`;
 
         let progress = " ";
 
