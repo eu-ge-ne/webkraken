@@ -1,6 +1,6 @@
 import got, { type Got, type Options as GotOptions } from "got";
 import UserAgents from "user-agents";
-import { HttpsProxyAgent } from "hpagent";
+import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 
 import { Ring } from "./ring.js";
 
@@ -18,7 +18,7 @@ export interface RequestResult {
 
 export class Request {
     #user_agents: Ring<string>;
-    #agents?: Ring<{ http: HttpsProxyAgent; https: HttpsProxyAgent }>;
+    #agents?: Ring<{ http: HttpProxyAgent; https: HttpsProxyAgent }>;
     #got: Got;
 
     constructor(private readonly opts: Options) {
@@ -32,17 +32,24 @@ export class Request {
 
         if (opts.proxy) {
             this.#agents = new Ring(
-                opts.proxy.map((url) => {
-                    const x = new HttpsProxyAgent({
+                opts.proxy.map((url) => ({
+                    http: new HttpProxyAgent({
                         keepAlive: true,
                         keepAliveMsecs: 1000,
                         maxSockets: 256,
                         maxFreeSockets: 256,
                         scheduling: "lifo",
                         proxy: url.origin,
-                    });
-                    return { http: x, https: x };
-                })
+                    }),
+                    https: new HttpsProxyAgent({
+                        keepAlive: true,
+                        keepAliveMsecs: 1000,
+                        maxSockets: 256,
+                        maxFreeSockets: 256,
+                        scheduling: "lifo",
+                        proxy: url.origin,
+                    }),
+                }))
             );
         }
 
