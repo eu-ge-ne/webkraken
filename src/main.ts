@@ -3,11 +3,7 @@ import fs from "node:fs";
 import { program, type Command } from "commander";
 
 import * as log from "./log.js";
-import { Db } from "./db/db.js";
-import { Invalid } from "./db/invalid.js";
-import { External } from "./db/external.js";
-import { InternalTree } from "./db/internal_tree.js";
-import { Internal } from "./db/internal.js";
+import { Db, InternalTree, Internal, External, Invalid } from "./db/index.js";
 import { Queue } from "./queue.js";
 import { Request } from "./request.js";
 import { Crawler } from "./crawler.js";

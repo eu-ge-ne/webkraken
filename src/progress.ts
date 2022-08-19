@@ -4,8 +4,7 @@ import string_width from "string-width";
 import pretty_ms from "pretty-ms";
 
 import * as log from "./log.js";
-import type { InternalTree } from "./db/internal_tree.js";
-import type { Internal } from "./db/internal.js";
+import type { InternalTree, Internal } from "./db/index.js";
 import type { Queue } from "./queue.js";
 import type { Crawler } from "./crawler.js";
 
