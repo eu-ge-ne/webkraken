@@ -12,10 +12,11 @@ interface Item {
 
 export class InternalTree {
     readonly #st_all: Statement;
+    readonly #st_children: Statement<{ parent: number }>;
     readonly #st_insert: Statement<{ parent: number; chunk: string }>;
 
-    readonly #items: Item[] = [];
-    readonly #origins: string[] = [];
+    readonly #items: Item[];
+    readonly #origins: string[];
 
     constructor(db: Db) {
         this.#st_all = db.prepare(`
@@ -27,15 +28,27 @@ FROM "internal_tree"
 WHERE "id" != 0;
 `);
 
+        this.#st_children = db.prepare(`
+SELECT
+    "id",
+    "chunk"
+FROM "internal_tree"
+WHERE
+    "id" != 0
+    AND "parent" = :parent;
+`);
+
         this.#st_insert = db.prepare(`
 INSERT INTO "internal_tree" ("parent", "chunk")
 VALUES (:parent, :chunk)
 RETURNING "id";
 `);
 
-        for (const item of this.#all()) {
-            this.#items.push(item);
+        this.#items = this.#st_all.all();
 
+        this.#origins = [];
+
+        for (const item of this.#items) {
             if (item.parent === 0) {
                 this.#origins.push(item.chunk);
             }
@@ -82,8 +95,8 @@ RETURNING "id";
         return chunks.join("");
     }
 
-    #all(): IterableIterator<{ id: number; parent: number; chunk: string }> {
-        return this.#st_all.iterate();
+    children(parent: number): { id: number; chunk: string }[] {
+        return this.#st_children.all({ parent });
     }
 
     #insert(parent: number, chunk: string): number {

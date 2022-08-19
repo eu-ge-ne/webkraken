@@ -5,15 +5,18 @@ import { Statement } from "better-sqlite3";
 import type { Db } from "./db.js";
 
 export class Internal {
-    #st_all: Statement;
-    #st_select_pending: Statement;
-    #st_upsert: Statement<{ parent: number; chunk: string; qs: string }>;
-    #st_update_visited: Statement<{ id: number; status_code: number; time_total?: number }>;
-    #st_link_insert: Statement<{ from: number; to: number }>;
+    readonly #st_all: Statement;
+    readonly #st_count_visited: Statement;
+    readonly #st_count_pending: Statement;
+    readonly #st_children: Statement<{ parent: number }>;
+    readonly #st_select_pending: Statement;
+    readonly #st_upsert: Statement<{ parent: number; chunk: string; qs: string }>;
+    readonly #st_update_visited: Statement<{ id: number; status_code: number; time_total?: number }>;
+    readonly #st_link_insert: Statement<{ from: number; to: number }>;
 
-    #items = new Map<string, number>();
-    #visited = 0;
-    #pending = 0;
+    readonly #items: Map<string, number>;
+    #visited: number;
+    #pending: number;
 
     constructor(db: Db) {
         this.#st_all = db.prepare(`
@@ -23,6 +26,22 @@ SELECT
     "chunk",
     "qs"
 FROM "internal";
+`);
+
+        this.#st_count_visited = db.prepare(`
+SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" != 0;
+`);
+
+        this.#st_count_pending = db.prepare(`
+SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" = 0;
+`);
+
+        this.#st_children = db.prepare(`
+SELECT
+    "chunk",
+    "qs"
+FROM "internal"
+WHERE "parent" = :parent;
 `);
 
         this.#st_select_pending = db.prepare(`
@@ -58,15 +77,22 @@ VALUES (:from, :to)
 RETURNING "id";
 `);
 
-        for (const item of this.#all()) {
+        const items = this.#st_all.iterate() as IterableIterator<{
+            id: number;
+            parent: number;
+            chunk: string;
+            qs: string;
+        }>;
+
+        this.#items = new Map<string, number>();
+
+        for (const item of items) {
             this.#items.set(item.parent + item.chunk + item.qs, item.id);
         }
 
-        this.#visited = db
-            .prepare<void>(`SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" != 0;`)
-            .get().count;
+        this.#visited = this.#st_count_visited.get().count;
 
-        this.#pending = db.prepare<void>(`SELECT COUNT(*) AS "count" FROM "internal" WHERE "visited" = 0;`).get().count;
+        this.#pending = this.#st_count_pending.get().count;
     }
 
     get visited_count() {
@@ -110,8 +136,8 @@ RETURNING "id";
         return result.id;
     }
 
-    #all(): IterableIterator<{ id: number; parent: number; chunk: string; qs: string }> {
-        return this.#st_all.iterate();
+    children(parent: number): { chunk: string; qs: string }[] {
+        return this.#st_children.all({ parent });
     }
 
     #upsert(item: { parent: number; chunk: string; qs: string }): number | undefined {

@@ -57,6 +57,20 @@ interface RunOptions extends GlobalOptions {
     progress: number;
 }
 
+const cmd_list = program.command("list").description("list urls");
+
+cmd_list.command("internal").description("list internal urls").argument("<file>", "file path").action(list_internal);
+
+interface ListInternalOptions extends GlobalOptions {}
+
+cmd_list.command("external").description("list external urls").argument("<file>", "file path").action(list_external);
+
+interface ListExternalOptions extends GlobalOptions {}
+
+cmd_list.command("invalid").description("list invalid urls").argument("<file>", "file path").action(list_invalid);
+
+interface ListInvalidOptions extends GlobalOptions {}
+
 await program.parseAsync();
 
 async function init(file: string, _: unknown, command: Command) {
@@ -189,4 +203,78 @@ async function run(file: string, _: unknown, command: Command) {
     db.close();
 
     log.info("Completed");
+}
+
+async function list_internal(file: string, _: unknown, command: Command) {
+    const opts = command.optsWithGlobals<ListInternalOptions>();
+
+    log.verbose(opts.verbose);
+
+    if (!fs.existsSync(file)) {
+        log.error("File %s not found", file);
+        process.exit(1);
+    }
+
+    const db = new Db(file);
+
+    const internal_tree = new InternalTree(db);
+    const internal = new Internal(db);
+
+    function list(parent_chunks: string[], parent_id: number) {
+        const item_chunks = internal.children(parent_id);
+        for (const { chunk, qs } of item_chunks) {
+            log.print(parent_chunks.concat(chunk, qs).join(""));
+        }
+
+        const tree_chunks = internal_tree.children(parent_id);
+        for (const { id, chunk } of tree_chunks) {
+            list(parent_chunks.concat(chunk), id);
+        }
+    }
+
+    list([], 0);
+
+    db.close();
+}
+
+async function list_external(file: string, _: unknown, command: Command) {
+    const opts = command.optsWithGlobals<ListExternalOptions>();
+
+    log.verbose(opts.verbose);
+
+    if (!fs.existsSync(file)) {
+        log.error("File %s not found", file);
+        process.exit(1);
+    }
+
+    const db = new Db(file);
+
+    const external = new External(db);
+
+    for (const { href } of external.all()) {
+        log.print(href);
+    }
+
+    db.close();
+}
+
+async function list_invalid(file: string, _: unknown, command: Command) {
+    const opts = command.optsWithGlobals<ListInvalidOptions>();
+
+    log.verbose(opts.verbose);
+
+    if (!fs.existsSync(file)) {
+        log.error("File %s not found", file);
+        process.exit(1);
+    }
+
+    const db = new Db(file);
+
+    const invalid = new Invalid(db);
+
+    for (const { href } of invalid.all()) {
+        log.print(href);
+    }
+
+    db.close();
 }
