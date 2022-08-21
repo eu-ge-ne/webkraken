@@ -16,7 +16,8 @@ export class Invalid {
 SELECT
     "id",
     "href"
-FROM "invalid";`);
+FROM "invalid";
+`);
 
         this.#st_upsert = db.prepare(`
 INSERT INTO "invalid" ("href")
