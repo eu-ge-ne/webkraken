@@ -1,4 +1,4 @@
-import assert from "assert/strict";
+import assert from "node:assert/strict";
 
 export function parse_url(href: string): URL {
     const url = new URL(href);
