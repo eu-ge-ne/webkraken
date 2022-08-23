@@ -23,8 +23,6 @@ async function action(file: string, _: unknown, command: Command) {
         process.exit(1);
     }
 
-    log.info("Info", { file });
-
     const db = new Db(file);
 
     const invalid = new Invalid(db);
@@ -35,17 +33,17 @@ async function action(file: string, _: unknown, command: Command) {
     log.info("Origins", { origins: internal_tree.origins });
 
     log.info("Internal", {
-        total: internal.total_count,
-        visited: internal.visited_count,
-        pending: internal.pending_count,
+        total: internal.count(),
+        visited: internal.count_visited(),
+        pending: internal.count_pending(),
     });
 
     log.info("External", {
-        total: external.total_count,
+        total: external.count(),
     });
 
     log.info("Invalid", {
-        total: invalid.total_count,
+        total: invalid.count(),
     });
 
     db.close();

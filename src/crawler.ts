@@ -1,5 +1,16 @@
 import * as log from "./log.js";
-import type { Db, InternalTree, Internal, External, Invalid } from "./db/index.js";
+import type {
+    Db,
+    InternalTree,
+    Internal,
+    InternalLink,
+    External,
+    ExternalLink,
+    Invalid,
+    InvalidLink,
+    Exclude,
+} from "./db/index.js";
+import type { InvalidCache, ExternalCache, InternalCache } from "./cache/index.js";
 import type { Queue } from "./queue.js";
 import type { Request, RequestResult } from "./request.js";
 import { parse_urls, type ParsedUrls, split_url } from "./url.js";
@@ -15,20 +26,29 @@ interface Options {
 export class Crawler {
     readonly #tick = new Tick(100);
     readonly #rps_interval: number;
+    readonly #exclude_patterns: RegExp[];
     #last_req = 0;
     #error_count = 0;
 
     constructor(
         private readonly db: Db,
         private readonly invalid: Invalid,
+        private readonly invalid_cache: InvalidCache,
+        private readonly invalid_link: InvalidLink,
         private readonly external: External,
+        private readonly external_cache: ExternalCache,
+        private readonly external_link: ExternalLink,
         private readonly internal_tree: InternalTree,
         private readonly internal: Internal,
+        private readonly internal_link: InternalLink,
+        private readonly internal_cache: InternalCache,
+        private readonly exclude: Exclude,
         private readonly queue: Queue,
         private readonly request: Request,
         private readonly opts: Options
     ) {
         this.#rps_interval = 1_000 / this.opts.rps;
+        this.#exclude_patterns = this.exclude.all().map((x) => new RegExp(x.regexp));
     }
 
     get rps() {
@@ -138,25 +158,30 @@ export class Crawler {
 
     #visited(visit_id: number, res: RequestResult, urls?: ParsedUrls) {
         this.db.transaction(() => {
-            this.internal.update_visited(visit_id, res.status_code, res.time_total);
+            this.internal_cache.visited(visit_id, res.status_code, res.time_total);
 
             if (urls) {
                 for (const url of urls.valid) {
                     const is_internal = this.internal_tree.origins.includes(url.origin);
                     if (is_internal) {
-                        const { chunks, chunk, qs } = split_url(url);
-                        const parent = this.internal_tree.touch(chunks);
-                        const to_id = this.internal.touch({ parent, chunk, qs });
-                        this.internal.link_insert(visit_id, to_id);
+                        const excluded = this.#exclude_patterns.some((x) => x.test(url.href));
+                        if (excluded) {
+                            log.warn("Excluded url", { visit_id, href: url.href });
+                        } else {
+                            const { chunks, chunk, qs } = split_url(url);
+                            const parent = this.internal_tree.touch(chunks);
+                            const to_id = this.internal_cache.touch({ parent, chunk, qs });
+                            this.internal_link.insert(visit_id, to_id);
+                        }
                     } else {
-                        const to_id = this.external.touch(url.href);
-                        this.external.link_insert(visit_id, to_id);
+                        const to_id = this.external_cache.touch(url.href);
+                        this.external_link.insert(visit_id, to_id);
                     }
                 }
 
                 for (const href of urls.invalid) {
-                    const to_id = this.invalid.touch(href);
-                    this.invalid.link_insert(visit_id, to_id);
+                    const to_id = this.invalid_cache.touch(href);
+                    this.invalid_link.insert(visit_id, to_id);
                 }
             }
         });

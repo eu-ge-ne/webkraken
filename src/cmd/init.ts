@@ -4,6 +4,7 @@ import { Command } from "commander";
 
 import * as log from "../log.js";
 import { Db, InternalTree, Internal } from "../db/index.js";
+import { InternalCache } from "../cache/index.js";
 import { parse_url_option, split_url } from "../url.js";
 import type { GlobalOptions } from "./global.js";
 
@@ -28,7 +29,6 @@ async function action(file: string, _: unknown, command: Command) {
     }
 
     log.info("Initializing", {
-        file,
         options: {
             ...opts,
             origin: opts.origin.map((x) => x.origin),
@@ -40,11 +40,12 @@ async function action(file: string, _: unknown, command: Command) {
 
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
+    const internal_cache = new InternalCache(internal);
 
     for (const url of opts.origin) {
         const { chunks, chunk, qs } = split_url(new URL(url.origin));
         const parent = internal_tree.touch(chunks);
-        internal.touch({ parent, chunk, qs });
+        internal_cache.touch({ parent, chunk, qs });
     }
 
     db.close();

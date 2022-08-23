@@ -3,7 +3,18 @@ import fs from "node:fs";
 import { Command } from "commander";
 
 import * as log from "../log.js";
-import { Db, InternalTree, Internal, External, Invalid } from "../db/index.js";
+import {
+    Db,
+    InternalTree,
+    Internal,
+    InternalLink,
+    External,
+    ExternalLink,
+    Invalid,
+    InvalidLink,
+    Exclude,
+} from "../db/index.js";
+import { InvalidCache, ExternalCache, InternalCache } from "../cache/index.js";
 import { Queue } from "../queue.js";
 import { Request } from "../request.js";
 import { Crawler } from "../crawler.js";
@@ -41,7 +52,6 @@ async function action(file: string, _: unknown, command: Command) {
     }
 
     log.info("Running", {
-        file,
         options: {
             ...opts,
             proxy: opts.proxy?.map((x) => x.origin),
@@ -51,9 +61,16 @@ async function action(file: string, _: unknown, command: Command) {
     const db = new Db(file);
 
     const invalid = new Invalid(db);
+    const invalid_link = new InvalidLink(db);
+    const invalid_cache = new InvalidCache(invalid);
     const external = new External(db);
+    const external_link = new ExternalLink(db);
+    const external_cache = new ExternalCache(external);
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
+    const internal_link = new InternalLink(db);
+    const internal_cache = new InternalCache(internal);
+    const exclude = new Exclude(db);
 
     const queue = new Queue();
     const request = new Request({
@@ -61,12 +78,28 @@ async function action(file: string, _: unknown, command: Command) {
         proxy: opts.proxy,
     });
 
-    const crawler = new Crawler(db, invalid, external, internal_tree, internal, queue, request, {
-        rps: opts.rps,
-        batch_size: 1000,
-    });
+    const crawler = new Crawler(
+        db,
+        invalid,
+        invalid_cache,
+        invalid_link,
+        external,
+        external_cache,
+        external_link,
+        internal_tree,
+        internal,
+        internal_link,
+        internal_cache,
+        exclude,
+        queue,
+        request,
+        {
+            rps: opts.rps,
+            batch_size: 1000,
+        }
+    );
 
-    const progress = new Progress(internal_tree, internal, queue, crawler);
+    const progress = new Progress(internal_tree, internal_cache, queue, crawler);
 
     const crawling = crawler.run();
     let crawling_completed = false;

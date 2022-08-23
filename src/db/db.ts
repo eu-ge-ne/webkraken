@@ -5,6 +5,8 @@ export class Db {
 
     constructor(file_name: string) {
         this.#db = new Sqlite(file_name);
+
+        this.#db.pragma("journal_mode = WAL");
     }
 
     close() {
@@ -15,12 +17,21 @@ export class Db {
         this.#db.transaction(fn)();
     }
 
-    prepare<T>(source: string) {
+    exec(query: string) {
+        this.#db.exec(query);
+    }
+
+    prepare<T = void>(source: string) {
         return this.#db.prepare<T>(source);
     }
 
     init() {
         this.#db.exec(`
+CREATE TABLE IF NOT EXISTS "exclude" (
+    "id"     INTEGER PRIMARY KEY ASC,
+    "regexp" TEXT NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS "invalid" (
     "id"   INTEGER PRIMARY KEY ASC,
     "href" TEXT NOT NULL UNIQUE

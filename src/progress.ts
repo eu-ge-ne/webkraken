@@ -4,7 +4,8 @@ import string_width from "string-width";
 import pretty_ms from "pretty-ms";
 
 import * as log from "./log.js";
-import type { InternalTree, Internal } from "./db/index.js";
+import type { InternalTree } from "./db/index.js";
+import type { InternalCache } from "./cache/index.js";
 import type { Queue } from "./queue.js";
 import type { Crawler } from "./crawler.js";
 
@@ -18,7 +19,7 @@ export class Progress {
 
     constructor(
         private readonly internal_tree: InternalTree,
-        private readonly internal: Internal,
+        private readonly internal_cache: InternalCache,
         private readonly queue: Queue,
         private readonly crawler: Crawler
     ) {}
@@ -31,7 +32,7 @@ export class Progress {
 
         const start_str = `${elapsed} ${rps} ${this.queue.pop_count} ${error_count}`;
 
-        const end_str = `${this.internal.visited_count}/${this.internal.pending_count} ${this.internal.total_count}|${this.internal_tree.total_count}`;
+        const end_str = `${this.internal_cache.count_visited}/${this.internal_cache.count_pending} ${this.internal_cache.count}|${this.internal_tree.total_count}`;
 
         let progress = " ";
 
@@ -44,8 +45,8 @@ export class Progress {
                 string_width(END);
 
             if (width_available >= 10) {
-                const d = width_available / this.internal.total_count;
-                const w0 = Math.round(d * this.internal.visited_count);
+                const d = width_available / this.internal_cache.count;
+                const w0 = Math.round(d * this.internal_cache.count_visited);
                 const w1 = width_available - w0;
                 progress = START + PR0.repeat(w0) + PR1.repeat(w1) + END;
             }
