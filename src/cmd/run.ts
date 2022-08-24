@@ -69,7 +69,7 @@ async function action(file: string, _: unknown, command: Command) {
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
     const internal_link = new InternalLink(db);
-    const internal_cache = new InternalCache(internal);
+    const internal_cache = new InternalCache(internal_tree, internal);
     const exclude = new Exclude(db);
 
     const queue = new Queue();
@@ -99,7 +99,7 @@ async function action(file: string, _: unknown, command: Command) {
         }
     );
 
-    const progress = new Progress(internal_tree, internal_cache, queue, crawler);
+    const progress = new Progress(internal_cache, queue, crawler);
 
     const crawling = crawler.run();
     let crawling_completed = false;

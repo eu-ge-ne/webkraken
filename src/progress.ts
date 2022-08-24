@@ -4,7 +4,6 @@ import string_width from "string-width";
 import pretty_ms from "pretty-ms";
 
 import * as log from "./log.js";
-import type { InternalTree } from "./db/index.js";
 import type { InternalCache } from "./cache/index.js";
 import type { Queue } from "./queue.js";
 import type { Crawler } from "./crawler.js";
@@ -18,7 +17,6 @@ export class Progress {
     #started = Date.now();
 
     constructor(
-        private readonly internal_tree: InternalTree,
         private readonly internal_cache: InternalCache,
         private readonly queue: Queue,
         private readonly crawler: Crawler
@@ -32,7 +30,7 @@ export class Progress {
 
         const start_str = `${elapsed} ${rps} ${this.queue.pop_count} ${error_count}`;
 
-        const end_str = `${this.internal_cache.count_visited}/${this.internal_cache.count_pending} ${this.internal_cache.count}|${this.internal_tree.total_count}`;
+        const end_str = `${this.internal_cache.count_visited}/${this.internal_cache.count_pending} ${this.internal_cache.count}|${this.internal_cache.count_tree}`;
 
         let progress = " ";
 

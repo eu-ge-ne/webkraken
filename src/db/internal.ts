@@ -111,8 +111,8 @@ RETURNING "id";
         return this.#st_children.all({ parent });
     }
 
-    upsert(item: { parent: number; chunk: string; qs: string }): number | undefined {
-        const result = this.#st_upsert.get(item);
+    upsert(parent: number, chunk: string, qs: string): number | undefined {
+        const result = this.#st_upsert.get({ parent, chunk, qs });
         const id = result?.id;
         return id;
     }

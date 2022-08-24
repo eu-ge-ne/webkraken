@@ -40,12 +40,11 @@ async function action(file: string, _: unknown, command: Command) {
 
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
-    const internal_cache = new InternalCache(internal);
+    const internal_cache = new InternalCache(internal_tree, internal);
 
     for (const url of opts.origin) {
         const { chunks, chunk, qs } = split_url(new URL(url.origin));
-        const parent = internal_tree.touch(chunks);
-        internal_cache.touch({ parent, chunk, qs });
+        internal_cache.touch(chunks, chunk, qs);
     }
 
     db.close();

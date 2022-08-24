@@ -27,6 +27,7 @@ export class Crawler {
     readonly #tick = new Tick(100);
     readonly #rps_interval: number;
     readonly #exclude_patterns: RegExp[];
+    readonly #origins: string[];
     #last_req = 0;
     #error_count = 0;
 
@@ -49,6 +50,7 @@ export class Crawler {
     ) {
         this.#rps_interval = 1_000 / this.opts.rps;
         this.#exclude_patterns = this.exclude.all().map((x) => new RegExp(x.regexp));
+        this.#origins = this.internal_tree.origins();
     }
 
     get rps() {
@@ -133,9 +135,10 @@ export class Crawler {
         let item = this.queue.pop();
 
         if (!item) {
-            const items = this.internal.select_pending(this.opts.batch_size).map((row) => ({
-                id: row.id,
-                href: this.internal_tree.build_href(row),
+            const pending = this.internal.select_pending(this.opts.batch_size);
+            const items = pending.map(({ id, parent, chunk, qs }) => ({
+                id,
+                href: this.internal_cache.build_href(parent, chunk, qs),
             }));
 
             this.queue.push(items);
@@ -162,15 +165,14 @@ export class Crawler {
 
             if (urls) {
                 for (const url of urls.valid) {
-                    const is_internal = this.internal_tree.origins.includes(url.origin);
+                    const is_internal = this.#origins.includes(url.origin);
                     if (is_internal) {
                         const excluded = this.#exclude_patterns.some((x) => x.test(url.href));
                         if (excluded) {
                             log.warn("Excluded url", { visit_id, href: url.href });
                         } else {
                             const { chunks, chunk, qs } = split_url(url);
-                            const parent = this.internal_tree.touch(chunks);
-                            const to_id = this.internal_cache.touch({ parent, chunk, qs });
+                            const to_id = this.internal_cache.touch(chunks, chunk, qs);
                             this.internal_link.insert(visit_id, to_id);
                         }
                     } else {
