@@ -27,9 +27,14 @@ async function action(file: string, _: unknown, command: Command) {
 
     const external = new External(db);
 
+    let n = 0;
+
     for (const { href } of external.all()) {
+        n += 1;
         log.print(href);
     }
+
+    log.print("Found %i external hrefs", n);
 
     db.close();
 }

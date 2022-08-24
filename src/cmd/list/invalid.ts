@@ -27,9 +27,14 @@ async function action(file: string, _: unknown, command: Command) {
 
     const invalid = new Invalid(db);
 
+    let n = 0;
+
     for (const { href } of invalid.all()) {
+        n += 1;
         log.print(href);
     }
+
+    log.print("Found %i invalid hrefs", n);
 
     db.close();
 }
