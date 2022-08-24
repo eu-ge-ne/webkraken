@@ -9,9 +9,18 @@ import type { GlobalOptions } from "../global.js";
 export const internal = new Command("internal")
     .description("list internal urls")
     .argument("<file>", "file path")
+    .option("--filter <string...>", "regexps", (value: string, prev?: RegExp[]) => {
+        try {
+            return (prev ?? []).concat(new RegExp(value));
+        } catch (err) {
+            throw new Error(`Invalid RegExp: ${value}`);
+        }
+    })
     .action(action);
 
-interface ListInternalOptions extends GlobalOptions {}
+interface ListInternalOptions extends GlobalOptions {
+    filter?: RegExp[];
+}
 
 async function action(file: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<ListInternalOptions>();
@@ -28,19 +37,23 @@ async function action(file: string, _: unknown, command: Command) {
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
 
-    function list(parent_chunks: string[], parent_id: number) {
-        const item_chunks = internal.children(parent_id);
-        for (const { chunk, qs } of item_chunks) {
-            log.print(parent_chunks.concat(chunk, qs).join(""));
-        }
+    let n = 0;
 
-        const tree_chunks = internal_tree.children(parent_id);
-        for (const { id, chunk } of tree_chunks) {
-            list(parent_chunks.concat(chunk), id);
+    for (const { parent, chunks } of internal_tree.flatten()) {
+        for (const { chunk, qs } of internal.children(parent)) {
+            const href = chunks.concat(chunk, qs).join("");
+
+            if (opts.filter && opts.filter.every((x) => !x.test(href))) {
+                continue;
+            }
+
+            n += 1;
+
+            log.print(href);
         }
     }
 
-    list([], 0);
+    log.print("Found %i internal hrefs", n);
 
     db.close();
 }

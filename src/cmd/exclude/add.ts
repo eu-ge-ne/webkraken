@@ -47,25 +47,15 @@ async function action(file: string, _: unknown, command: Command) {
     const exclude = new Exclude(db);
     const ids: number[] = [];
 
-    function list(parent_chunks: string[], parent_id: number) {
-        const item_chunks = internal.children(parent_id);
-        for (const { id, chunk, qs } of item_chunks) {
-            const href = parent_chunks.concat(chunk, qs).join("");
-            for (const regexp of opts.regexp) {
-                if (regexp.test(href)) {
-                    log.print(href);
-                    ids.push(id);
-                }
+    for (const { parent, chunks } of internal_tree.flatten()) {
+        for (const { id, chunk, qs } of internal.children(parent)) {
+            const href = chunks.concat(chunk, qs).join("");
+            if (opts.regexp.some((x) => x.test(href))) {
+                log.print(href);
+                ids.push(id);
             }
         }
-
-        const tree_chunks = internal_tree.children(parent_id);
-        for (const { id, chunk } of tree_chunks) {
-            list(parent_chunks.concat(chunk), id);
-        }
     }
-
-    list([], 0);
 
     if (!opts.dryRun) {
         log.print("Removing %i internal hrefs", ids.length);

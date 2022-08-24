@@ -51,13 +51,30 @@ RETURNING "id";
         return this.#st_origins.all().map((x) => x.chunk);
     }
 
-    children(parent: number): { id: number; chunk: string }[] {
-        return this.#st_children.all({ parent });
+    flatten() {
+        return this.#flatten(0, []);
     }
 
     insert(parent: number, chunk: string): number {
         const result = this.#st_insert.get({ parent, chunk });
         assert(typeof result.id === "number");
         return result.id;
+    }
+
+    #children(parent: number): { id: number; chunk: string }[] {
+        return this.#st_children.all({ parent });
+    }
+
+    *#flatten(parent: number, chunks: string[]): Generator<{ parent: number; chunks: string[] }> {
+        const items = this.#children(parent);
+
+        if (items.length === 0) {
+            yield { parent, chunks };
+            return;
+        }
+
+        for (const { id, chunk } of items) {
+            yield* this.#flatten(id, chunks.concat(chunk));
+        }
     }
 }
