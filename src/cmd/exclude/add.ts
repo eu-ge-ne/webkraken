@@ -34,11 +34,11 @@ async function action(file: string, _: unknown, command: Command) {
         process.exit(1);
     }
 
-    log.info("Exclude", {
-        options: {
-            ...opts,
-        },
-    });
+    log.print("Excluding:");
+
+    for (const regexp of opts.regexp) {
+        log.print(regexp);
+    }
 
     const db = new Db(file);
 
@@ -68,6 +68,8 @@ async function action(file: string, _: unknown, command: Command) {
     list([], 0);
 
     if (!opts.dryRun) {
+        log.print("Removing %i internal hrefs", ids.length);
+
         db.transaction(() => {
             internal.delete(ids);
 
