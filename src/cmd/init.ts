@@ -43,8 +43,8 @@ async function action(file: string, _: unknown, command: Command) {
     const internal_cache = new InternalCache(internal_tree, internal);
 
     for (const url of opts.origin) {
-        const { chunks, chunk, qs } = split_url(new URL(url.origin));
-        internal_cache.touch(chunks, chunk, qs);
+        const { chunks, qs } = split_url(new URL(url.origin));
+        internal_cache.touch(chunks, qs);
     }
 
     db.close();

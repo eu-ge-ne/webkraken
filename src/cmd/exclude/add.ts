@@ -48,8 +48,8 @@ async function action(file: string, _: unknown, command: Command) {
     const ids: number[] = [];
 
     for (const { parent, chunks } of internal_tree.flatten()) {
-        for (const { id, chunk, qs } of internal.children(parent)) {
-            const href = chunks.concat(chunk, qs).join("");
+        for (const { id, qs } of internal.children(parent)) {
+            const href = chunks.concat(qs).join("");
             if (opts.regexp.some((x) => x.test(href))) {
                 log.print(href);
                 ids.push(id);

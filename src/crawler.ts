@@ -136,9 +136,9 @@ export class Crawler {
 
         if (!item) {
             const pending = this.internal.select_pending(this.opts.batch_size);
-            const items = pending.map(({ id, parent, chunk, qs }) => ({
+            const items = pending.map(({ id, parent, qs }) => ({
                 id,
-                href: this.internal_cache.build_href(parent, chunk, qs),
+                href: this.internal_cache.build_href(parent, qs),
             }));
 
             this.queue.push(items);
@@ -171,8 +171,8 @@ export class Crawler {
                         if (excluded) {
                             log.debug("Excluded %s", url.href);
                         } else {
-                            const { chunks, chunk, qs } = split_url(url);
-                            const to_id = this.internal_cache.touch(chunks, chunk, qs);
+                            const { chunks, qs } = split_url(url);
+                            const to_id = this.internal_cache.touch(chunks, qs);
                             this.internal_link.insert(visit_id, to_id);
                         }
                     } else {

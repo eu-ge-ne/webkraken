@@ -40,8 +40,8 @@ async function action(file: string, _: unknown, command: Command) {
     let n = 0;
 
     for (const { parent, chunks } of internal_tree.flatten()) {
-        for (const { chunk, qs } of internal.children(parent)) {
-            const href = chunks.concat(chunk, qs).join("");
+        for (const { qs } of internal.children(parent)) {
+            const href = chunks.concat(qs).join("");
 
             if (opts.filter && opts.filter.every((x) => !x.test(href))) {
                 continue;

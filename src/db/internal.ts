@@ -11,7 +11,7 @@ export class Internal {
     readonly #st_count_pending: Statement;
     readonly #st_children: Statement<{ parent: number }>;
     readonly #st_select_pending: Statement;
-    readonly #st_upsert: Statement<{ parent: number; chunk: string; qs: string }>;
+    readonly #st_upsert: Statement<{ parent: number; qs: string }>;
     readonly #st_visited: Statement<{ id: number; status_code: number; time_total?: number }>;
 
     constructor(private readonly db: Db) {
@@ -19,7 +19,6 @@ export class Internal {
 SELECT
     "id",
     "parent",
-    "chunk",
     "qs"
 FROM "internal";
 `);
@@ -44,7 +43,6 @@ WHERE "visited" = 0;
         this.#st_children = db.prepare(`
 SELECT
     "id",
-    "chunk",
     "qs"
 FROM "internal"
 WHERE "parent" = :parent;
@@ -54,7 +52,6 @@ WHERE "parent" = :parent;
 SELECT
     "id",
     "parent",
-    "chunk",
     "qs"
 FROM "internal"
 WHERE "visited" = 0
@@ -62,9 +59,9 @@ LIMIT :limit;
 `);
 
         this.#st_upsert = db.prepare(`
-INSERT INTO "internal" ("parent", "chunk", "qs")
-VALUES (:parent, :chunk, :qs)
-ON CONFLICT ("parent", "chunk", "qs") DO NOTHING
+INSERT INTO "internal" ("parent", "qs")
+VALUES (:parent, :qs)
+ON CONFLICT ("parent", "qs") DO NOTHING
 RETURNING "id";
 `);
 
@@ -78,7 +75,7 @@ RETURNING "id";
 `);
     }
 
-    all(): IterableIterator<{ id: number; parent: number; chunk: string; qs: string }> {
+    all(): IterableIterator<{ id: number; parent: number; qs: string }> {
         return this.#st_all.iterate();
     }
 
@@ -94,7 +91,7 @@ RETURNING "id";
         return this.#st_count_pending.get().count;
     }
 
-    select_pending(limit: number): { id: number; parent: number; chunk: string; qs: string }[] {
+    select_pending(limit: number): { id: number; parent: number; qs: string }[] {
         return this.#st_select_pending.all({ limit });
     }
 
@@ -107,12 +104,12 @@ RETURNING "id";
         this.db.exec(`DELETE FROM "internal" WHERE "id" IN (${ids.join(",")})`);
     }
 
-    children(parent: number): { id: number; chunk: string; qs: string }[] {
+    children(parent: number): { id: number; qs: string }[] {
         return this.#st_children.all({ parent });
     }
 
-    upsert(parent: number, chunk: string, qs: string): number | undefined {
-        const result = this.#st_upsert.get({ parent, chunk, qs });
+    upsert(parent: number, qs: string): number | undefined {
+        const result = this.#st_upsert.get({ parent, qs });
         const id = result?.id;
         return id;
     }

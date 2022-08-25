@@ -40,7 +40,7 @@ export function parse_urls(hrefs: string[], base: string): ParsedUrls {
     return { valid, invalid };
 }
 
-export function split_url(url: URL): { chunks: string[]; chunk: string; qs: string } {
+export function split_url(url: URL): { chunks: string[]; qs: string } {
     const chunks: string[] = [];
 
     chunks.push(url.origin);
@@ -52,11 +52,8 @@ export function split_url(url: URL): { chunks: string[]; chunk: string; qs: stri
         chunks.push("/" + p);
     }
 
-    const chunk = chunks.pop();
-    assert(chunk);
-
     url.searchParams.sort();
     const qs = url.search;
 
-    return { chunks, chunk, qs };
+    return { chunks, qs };
 }

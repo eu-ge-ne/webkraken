@@ -3,23 +3,17 @@ import assert from "node:assert/strict";
 import type { InternalTree } from "../db/internal_tree";
 import type { Internal } from "../db/internal.js";
 
-interface TreeItem {
-    readonly id: number;
-    readonly parent: number;
-    readonly chunk: string;
-}
-
 export class InternalCache {
-    readonly #tree: TreeItem[];
-    readonly #items = new Map<string, number>();
+    readonly #tree: { id: number; parent: number; chunk: string }[];
+    readonly #leafs = new Map<string, number>();
     #visited: number;
     #pending: number;
 
     constructor(private readonly internal_tree: InternalTree, private readonly internal: Internal) {
         this.#tree = this.internal_tree.all();
 
-        for (const item of this.internal.all()) {
-            this.#items.set(item.parent + item.chunk + item.qs, item.id);
+        for (const { id, parent, qs } of this.internal.all()) {
+            this.#leafs.set(parent + qs, id);
         }
 
         this.#visited = this.internal.count_visited();
@@ -31,7 +25,7 @@ export class InternalCache {
     }
 
     get count() {
-        return this.#items.size;
+        return this.#leafs.size;
     }
 
     get count_visited() {
@@ -42,8 +36,8 @@ export class InternalCache {
         return this.#pending;
     }
 
-    build_href(parent: number, chunk: string, qs: string) {
-        let chunks: string[] = [chunk, qs];
+    build_href(parent: number, qs: string) {
+        let chunks: string[] = [qs];
 
         while (parent !== 0) {
             const item = this.#tree.find((x) => x.id === parent);
@@ -55,7 +49,7 @@ export class InternalCache {
         return chunks.join("");
     }
 
-    touch(chunks: string[], chunk: string, qs: string): number {
+    touch(chunks: string[], qs: string): number {
         let parent = 0;
 
         for (const chunk of chunks) {
@@ -70,15 +64,15 @@ export class InternalCache {
 
         assert(parent !== 0);
 
-        const key = parent + chunk + qs;
+        const key = parent + qs;
 
-        let id = this.internal.upsert(parent, chunk, qs);
+        let id = this.internal.upsert(parent, qs);
 
         if (typeof id === "number") {
-            this.#items.set(key, id);
+            this.#leafs.set(key, id);
             this.#pending += 1;
         } else {
-            id = this.#items.get(key);
+            id = this.#leafs.get(key);
             assert(id);
         }
 

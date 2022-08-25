@@ -49,47 +49,40 @@ test_parse_url_option("http://test.com", [], ["http://test.com/"]);
 test_parse_url_option("http://test.com", [new URL("http://test2.com")], ["http://test2.com/", "http://test.com/"]);
 test_parse_url_option("http://test.com", undefined, ["http://test.com/"]);
 
-const macro_split_url = test.macro((t, href: string, expected: { chunks: string[]; chunk: string; qs: string }) => {
+const macro_split_url = test.macro((t, href: string, expected: { chunks: string[]; qs: string }) => {
     const result = split_url(new URL(href));
     t.deepEqual(result, expected);
 });
 
-function test_split_url(href: string, expected: { chunks: string[]; chunk: string; qs: string }) {
+function test_split_url(href: string, expected: { chunks: string[]; qs: string }) {
     test(`split_url: ${href}`, macro_split_url, href, expected);
 }
 
 test_split_url("http://test.com", {
-    chunks: ["http://test.com"],
-    chunk: "/",
+    chunks: ["http://test.com", "/"],
     qs: "",
 });
 test_split_url("http://test.com/", {
-    chunks: ["http://test.com"],
-    chunk: "/",
+    chunks: ["http://test.com", "/"],
     qs: "",
 });
 test_split_url("http://test.com//", {
-    chunks: ["http://test.com", "/"],
-    chunk: "/",
+    chunks: ["http://test.com", "/", "/"],
     qs: "",
 });
 test_split_url("http://test.com/a/b", {
-    chunks: ["http://test.com", "/a"],
-    chunk: "/b",
+    chunks: ["http://test.com", "/a", "/b"],
     qs: "",
 });
 test_split_url("http://test.com/a/b/", {
-    chunks: ["http://test.com", "/a", "/b"],
-    chunk: "/",
+    chunks: ["http://test.com", "/a", "/b", "/"],
     qs: "",
 });
 test_split_url("http://test.com/a/?b=c&d=e", {
-    chunks: ["http://test.com", "/a"],
-    chunk: "/",
+    chunks: ["http://test.com", "/a", "/"],
     qs: "?b=c&d=e",
 });
 test_split_url("http://test.com/a/?d=3&c=2&b=1", {
-    chunks: ["http://test.com", "/a"],
-    chunk: "/",
+    chunks: ["http://test.com", "/a", "/"],
     qs: "?b=1&c=2&d=3",
 });

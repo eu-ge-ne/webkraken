@@ -27,21 +27,6 @@ export class Db {
 
     init() {
         this.#db.exec(`
-CREATE TABLE IF NOT EXISTS "exclude" (
-    "id"     INTEGER PRIMARY KEY ASC,
-    "regexp" TEXT NOT NULL UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS "invalid" (
-    "id"   INTEGER PRIMARY KEY ASC,
-    "href" TEXT NOT NULL UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS "external" (
-    "id"   INTEGER PRIMARY KEY ASC,
-    "href" TEXT NOT NULL UNIQUE
-);
-
 CREATE TABLE IF NOT EXISTS "internal_tree" (
     "id"     INTEGER PRIMARY KEY ASC,
     "parent" INTEGER NOT NULL REFERENCES "internal_tree" ("id") ON DELETE CASCADE,
@@ -55,19 +40,23 @@ VALUES (0, 0, '');
 CREATE TABLE IF NOT EXISTS "internal" (
     "id"          INTEGER PRIMARY KEY ASC,
     "parent"      INTEGER NOT NULL REFERENCES "internal_tree" ("id") ON DELETE CASCADE,
-    "chunk"       TEXT    NOT NULL,
     "qs"          TEXT    NOT NULL,
     "visited"     INTEGER NOT NULL DEFAULT 0,
     "status_code" INTEGER NOT NULL DEFAULT -1,
     "time_total"  INTEGER NOT NULL DEFAULT -1,
-    UNIQUE ("parent", "chunk", "qs")
+    UNIQUE ("parent", "qs")
 );
 
-CREATE TABLE IF NOT EXISTS "invalid_link" (
+CREATE TABLE IF NOT EXISTS "internal_link" (
     "id"   INTEGER PRIMARY KEY ASC,
     "from" INTEGER NOT NULL REFERENCES "internal" ("id") ON DELETE CASCADE,
-    "to"   INTEGER NOT NULL REFERENCES "invalid" ("id") ON DELETE CASCADE,
+    "to"   INTEGER NOT NULL REFERENCES "internal" ("id") ON DELETE CASCADE,
     UNIQUE ("from", "to")
+);
+
+CREATE TABLE IF NOT EXISTS "external" (
+    "id"   INTEGER PRIMARY KEY ASC,
+    "href" TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS "external_link" (
@@ -77,11 +66,21 @@ CREATE TABLE IF NOT EXISTS "external_link" (
     UNIQUE ("from", "to")
 );
 
-CREATE TABLE IF NOT EXISTS "internal_link" (
+CREATE TABLE IF NOT EXISTS "invalid" (
+    "id"   INTEGER PRIMARY KEY ASC,
+    "href" TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS "invalid_link" (
     "id"   INTEGER PRIMARY KEY ASC,
     "from" INTEGER NOT NULL REFERENCES "internal" ("id") ON DELETE CASCADE,
-    "to"   INTEGER NOT NULL REFERENCES "internal" ("id") ON DELETE CASCADE,
+    "to"   INTEGER NOT NULL REFERENCES "invalid" ("id") ON DELETE CASCADE,
     UNIQUE ("from", "to")
+);
+
+CREATE TABLE IF NOT EXISTS "exclude" (
+    "id"     INTEGER PRIMARY KEY ASC,
+    "regexp" TEXT NOT NULL UNIQUE
 );
 `);
     }
