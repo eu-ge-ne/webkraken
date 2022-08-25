@@ -169,7 +169,7 @@ export class Crawler {
                     if (is_internal) {
                         const excluded = this.#exclude_patterns.some((x) => x.test(url.href));
                         if (excluded) {
-                            log.warn("Excluded url", { visit_id, href: url.href });
+                            log.debug("Excluded %s", url.href);
                         } else {
                             const { chunks, chunk, qs } = split_url(url);
                             const to_id = this.internal_cache.touch(chunks, chunk, qs);
