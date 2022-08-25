@@ -64,7 +64,7 @@ async function action(file: string, _: unknown, command: Command) {
             internal.delete(ids);
 
             for (const regexp of opts.regexp) {
-                exclude.insert(regexp.toString());
+                exclude.insert(regexp.source);
             }
         });
     }
