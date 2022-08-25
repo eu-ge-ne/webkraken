@@ -66,14 +66,9 @@ RETURNING "id";
     }
 
     *#flatten(parent: number, chunks: string[]): Generator<{ parent: number; chunks: string[] }> {
-        const items = this.#children(parent);
+        yield { parent, chunks };
 
-        if (items.length === 0) {
-            yield { parent, chunks };
-            return;
-        }
-
-        for (const { id, chunk } of items) {
+        for (const { id, chunk } of this.#children(parent)) {
             yield* this.#flatten(id, chunks.concat(chunk));
         }
     }
