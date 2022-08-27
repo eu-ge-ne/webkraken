@@ -49,8 +49,8 @@ export class Crawler {
         private readonly opts: Options
     ) {
         this.#rps_interval = 1_000 / this.opts.rps;
-        this.#exclude_patterns = this.exclude.all().map((x) => new RegExp(x.regexp));
-        this.#origins = this.internal_tree.origins();
+        this.#exclude_patterns = this.exclude.select_all().map((x) => new RegExp(x.regexp));
+        this.#origins = this.internal_tree.select_origins();
     }
 
     get rps() {

@@ -3,19 +3,19 @@ import { Statement } from "better-sqlite3";
 import type { Db } from "./db.js";
 
 export class Invalid {
-    readonly #st_all: Statement;
-    readonly #st_count: Statement;
+    readonly #st_select_all: Statement;
+    readonly #st_count_all: Statement;
     readonly #st_upsert: Statement<{ href: string }>;
 
     constructor(db: Db) {
-        this.#st_all = db.prepare(`
+        this.#st_select_all = db.prepare(`
 SELECT
     "id",
     "href"
 FROM "invalid";
 `);
 
-        this.#st_count = db.prepare(`
+        this.#st_count_all = db.prepare(`
 SELECT COUNT(*) AS "count"
 FROM "invalid";
 `);
@@ -28,12 +28,12 @@ RETURNING "id";
 `);
     }
 
-    all(): IterableIterator<{ id: number; href: string }> {
-        return this.#st_all.iterate();
+    select_all(): IterableIterator<{ id: number; href: string }> {
+        return this.#st_select_all.iterate();
     }
 
-    count(): number {
-        return this.#st_count.get().count;
+    count_all(): number {
+        return this.#st_count_all.get().count;
     }
 
     upsert(href: string): number | undefined {

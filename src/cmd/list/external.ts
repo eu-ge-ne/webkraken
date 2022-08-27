@@ -29,10 +29,10 @@ async function action(file: string, _: unknown, command: Command) {
 
     let n = 0;
 
-    for (const { href } of external.all()) {
+    for (const { href } of external.select_all()) {
         n += 1;
         log.print(href);
     }
 
-    log.print("Found %i external hrefs", n);
+    log.print("Found %i external urls", n);
 }

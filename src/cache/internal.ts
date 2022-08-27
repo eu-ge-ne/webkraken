@@ -10,9 +10,9 @@ export class InternalCache {
     #pending: number;
 
     constructor(private readonly internal_tree: InternalTree, private readonly internal: Internal) {
-        this.#tree = this.internal_tree.all();
+        this.#tree = this.internal_tree.select_all();
 
-        for (const { id, parent, qs } of this.internal.all()) {
+        for (const { id, parent, qs } of this.internal.select_all()) {
             this.#leafs.set(parent + qs, id);
         }
 
@@ -80,7 +80,7 @@ export class InternalCache {
     }
 
     visited(id: number, status_code: number, time_total?: number) {
-        this.internal.visited(id, status_code, time_total);
+        this.internal.update_visited(id, status_code, time_total);
         this.#visited += 1;
         this.#pending -= 1;
     }

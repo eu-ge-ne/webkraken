@@ -30,19 +30,19 @@ async function action(file: string, _: unknown, command: Command) {
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
 
-    log.info("Origins", { origins: internal_tree.origins() });
+    log.info("Origins", { origins: internal_tree.select_origins() });
 
     log.info("Internal", {
-        total: internal.count(),
+        total: internal.count_all(),
         visited: internal.count_visited(),
         pending: internal.count_pending(),
     });
 
     log.info("External", {
-        total: external.count(),
+        total: external.count_all(),
     });
 
     log.info("Invalid", {
-        total: invalid.count(),
+        total: invalid.count_all(),
     });
 }

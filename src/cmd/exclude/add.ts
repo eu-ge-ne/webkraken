@@ -47,8 +47,8 @@ async function action(file: string, _: unknown, command: Command) {
     const exclude = new Exclude(db);
     const ids: number[] = [];
 
-    for (const { parent, chunks } of internal_tree.scan()) {
-        for (const { id, qs } of internal.children(parent)) {
+    for (const { parent, chunks } of internal_tree.scan_children()) {
+        for (const { id, qs } of internal.select_children(parent)) {
             const href = chunks.concat(qs).join("");
             if (opts.regexp.some((x) => x.test(href))) {
                 log.print(href);

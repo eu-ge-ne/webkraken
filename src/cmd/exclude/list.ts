@@ -27,7 +27,7 @@ async function action(file: string, _: unknown, command: Command) {
 
     const exclude = new Exclude(db);
 
-    for (const { id, regexp } of exclude.all()) {
+    for (const { id, regexp } of exclude.select_all()) {
         log.print("%i\t%s", id, regexp);
     }
 }

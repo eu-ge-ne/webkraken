@@ -6,7 +6,7 @@ export class ExternalCache {
     readonly #items = new Map<string, number>();
 
     constructor(private readonly external: External) {
-        for (const item of this.external.all()) {
+        for (const item of this.external.select_all()) {
             this.#items.set(item.href, item.id);
         }
     }

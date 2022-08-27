@@ -29,10 +29,10 @@ async function action(file: string, _: unknown, command: Command) {
 
     let n = 0;
 
-    for (const { href } of invalid.all()) {
+    for (const { href } of invalid.select_all()) {
         n += 1;
         log.print(href);
     }
 
-    log.print("Found %i invalid hrefs", n);
+    log.print("Found %i invalid urls", n);
 }

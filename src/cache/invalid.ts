@@ -6,7 +6,7 @@ export class InvalidCache {
     readonly #items = new Map<string, number>();
 
     constructor(private readonly invalid: Invalid) {
-        for (const item of this.invalid.all()) {
+        for (const item of this.invalid.select_all()) {
             this.#items.set(item.href, item.id);
         }
     }
