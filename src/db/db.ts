@@ -1,16 +1,18 @@
 import Sqlite, { Database } from "better-sqlite3";
 
+import * as log from "../log.js";
+
 export class Db {
     #db: Database;
 
     constructor(file_name: string) {
         this.#db = new Sqlite(file_name);
-
         this.#db.pragma("journal_mode = WAL");
-    }
 
-    close() {
-        this.#db.close();
+        process.on("exit", () => {
+            this.#db.close();
+            log.debug("db file %s closed", file_name);
+        });
     }
 
     transaction(fn: () => void) {

@@ -47,7 +47,5 @@ async function action(file: string, _: unknown, command: Command) {
         internal_cache.touch(chunks, qs);
     }
 
-    db.close();
-
     log.info("File %s created successfully", file);
 }

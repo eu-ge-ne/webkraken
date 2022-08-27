@@ -35,6 +35,4 @@ async function action(file: string, _: unknown, command: Command) {
     }
 
     log.print("Found %i external hrefs", n);
-
-    db.close();
 }

@@ -68,6 +68,4 @@ async function action(file: string, _: unknown, command: Command) {
             }
         });
     }
-
-    db.close();
 }

@@ -45,6 +45,4 @@ async function action(file: string, _: unknown, command: Command) {
     log.info("Invalid", {
         total: invalid.count(),
     });
-
-    db.close();
 }
