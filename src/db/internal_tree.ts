@@ -51,8 +51,8 @@ RETURNING "id";
         return this.#st_origins.all().map((x) => x.chunk);
     }
 
-    flatten() {
-        return this.#flatten(0, []);
+    scan(max_depth = Number.MAX_SAFE_INTEGER) {
+        return this.#scan(max_depth, 0, []);
     }
 
     insert(parent: number, chunk: string): number {
@@ -65,11 +65,15 @@ RETURNING "id";
         return this.#st_children.all({ parent });
     }
 
-    *#flatten(parent: number, chunks: string[]): Generator<{ parent: number; chunks: string[] }> {
-        yield { parent, chunks };
+    *#scan(max_depth: number, parent: number, chunks: string[]): Generator<{ parent: number; chunks: string[] }> {
+        if (chunks.length > 0) {
+            yield { parent, chunks };
+        }
 
-        for (const { id, chunk } of this.#children(parent)) {
-            yield* this.#flatten(id, chunks.concat(chunk));
+        if (chunks.length < max_depth) {
+            for (const { id, chunk } of this.#children(parent)) {
+                yield* this.#scan(max_depth, id, chunks.concat(chunk));
+            }
         }
     }
 }
