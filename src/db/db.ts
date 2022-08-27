@@ -21,7 +21,7 @@ export class Db {
         this.#db.exec(query);
     }
 
-    prepare<T = void>(source: string) {
+    prepare<T extends any[] | {} = any[]>(source: string) {
         return this.#db.prepare<T>(source);
     }
 
