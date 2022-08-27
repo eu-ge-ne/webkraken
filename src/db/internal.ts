@@ -82,8 +82,8 @@ RETURNING "id";
 `);
     }
 
-    select_all(): IterableIterator<{ id: number; parent: number; qs: string }> {
-        return this.#st_select_all.iterate();
+    select_all(): { id: number; parent: number; qs: string }[] {
+        return this.#st_select_all.all();
     }
 
     count_all(): number {

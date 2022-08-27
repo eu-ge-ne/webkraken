@@ -28,8 +28,8 @@ RETURNING "id";
 `);
     }
 
-    select_all(): IterableIterator<{ id: number; href: string }> {
-        return this.#st_select_all.iterate();
+    select_all(): { id: number; href: string }[] {
+        return this.#st_select_all.all();
     }
 
     count_all(): number {
