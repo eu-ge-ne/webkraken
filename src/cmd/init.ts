@@ -1,16 +1,13 @@
-import fs from "node:fs";
-
-import { Command } from "commander";
+import type { Command } from "commander";
 
 import * as log from "../log.js";
 import { Db, InternalTree, Internal, Include } from "../db/index.js";
 import { InternalCache } from "../cache/index.js";
 import { parse_url_option, split_url } from "../url.js";
-import type { GlobalOptions } from "./global.js";
+import { FileCreateCommand, type GlobalOptions } from "./global.js";
 
-export const init = new Command("init")
+export const init = new FileCreateCommand("init")
     .description("init crawl data file")
-    .argument("<file>", "file path")
     .requiredOption("--url <url...>", "urls", parse_url_option)
     .requiredOption("--include <regexp...>", "include patterns", (value: string, prev?: RegExp[]) => {
         try {
@@ -30,11 +27,6 @@ async function action(file: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<InitOptions>();
 
     log.verbose(opts.verbose);
-
-    if (fs.existsSync(file)) {
-        log.error("File %s already exists", file);
-        process.exit(1);
-    }
 
     for (const url of opts.url) {
         if (opts.include.every((x) => !x.test(url.href))) {
@@ -57,8 +49,7 @@ async function action(file: string, _: unknown, command: Command) {
         log.print(regexp.source);
     }
 
-    const db = new Db(file);
-    db.init();
+    const db = Db.create(file);
 
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);

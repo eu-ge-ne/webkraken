@@ -1,15 +1,10 @@
-import fs from "node:fs";
-
-import { Command } from "commander";
+import type { Command } from "commander";
 
 import * as log from "../../log.js";
 import { Db, Invalid } from "../../db/index.js";
-import type { GlobalOptions } from "../global.js";
+import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
-export const invalid = new Command("invalid")
-    .description("list invalid urls")
-    .argument("<file>", "file path")
-    .action(action);
+export const invalid = new FileOpenCommand("invalid").description("list invalid urls").action(action);
 
 interface ListInvalidOptions extends GlobalOptions {}
 
@@ -18,12 +13,7 @@ async function action(file: string, _: unknown, command: Command) {
 
     log.verbose(opts.verbose);
 
-    if (!fs.existsSync(file)) {
-        log.error("File %s not found", file);
-        process.exit(1);
-    }
-
-    const db = new Db(file);
+    const db = Db.open(file);
 
     const invalid = new Invalid(db);
 

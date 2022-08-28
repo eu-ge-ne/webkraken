@@ -1,14 +1,11 @@
-import fs from "node:fs";
-
-import { Command } from "commander";
+import type { Command } from "commander";
 
 import * as log from "../../log.js";
 import { Db, InternalTree, Internal, Exclude } from "../../db/index.js";
-import type { GlobalOptions } from "../global.js";
+import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
-export const add = new Command("add")
+export const add = new FileOpenCommand("add")
     .description("add exclude patterns")
-    .argument("<file>", "file path")
     .requiredOption("--regexp <regexp...>", "exclude patterns", (value: string, prev?: RegExp[]) => {
         try {
             return (prev ?? []).concat(new RegExp(value));
@@ -29,18 +26,13 @@ async function action(file: string, _: unknown, command: Command) {
 
     log.verbose(opts.verbose);
 
-    if (!fs.existsSync(file)) {
-        log.error("File %s not found", file);
-        process.exit(1);
-    }
-
     log.print("Excluding patterns:");
 
     for (const regexp of opts.regexp) {
         log.print(regexp.source);
     }
 
-    const db = new Db(file);
+    const db = Db.open(file);
 
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);

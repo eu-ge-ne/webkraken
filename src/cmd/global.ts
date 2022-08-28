@@ -1,3 +1,5 @@
+import fs from "node:fs";
+
 import { Command } from "commander";
 
 export const program = new Command("webkraken")
@@ -7,4 +9,30 @@ export const program = new Command("webkraken")
 
 export interface GlobalOptions {
     verbose: boolean;
+}
+
+export class FileCreateCommand extends Command {
+    constructor(name?: string) {
+        super(name);
+
+        this.argument("<file>", "file path", (value: string) => {
+            if (fs.existsSync(value)) {
+                this.error(`File ${value} already exists`);
+            }
+            return value;
+        });
+    }
+}
+
+export class FileOpenCommand extends Command {
+    constructor(name?: string) {
+        super(name);
+
+        this.argument("<file>", "file path", (value: string) => {
+            if (!fs.existsSync(value)) {
+                this.error(`File ${value} not found`);
+            }
+            return value;
+        });
+    }
 }

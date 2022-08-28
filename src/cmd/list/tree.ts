@@ -1,14 +1,11 @@
-import fs from "node:fs";
-
-import { Command } from "commander";
+import type { Command } from "commander";
 
 import * as log from "../../log.js";
 import { Db, InternalTree, Internal } from "../../db/index.js";
-import type { GlobalOptions } from "../global.js";
+import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
-export const tree = new Command("tree")
+export const tree = new FileOpenCommand("tree")
     .description("list internal tree")
-    .argument("<file>", "file path")
     .option(
         "--depth <number>",
         "max depth",
@@ -32,12 +29,7 @@ async function action(file: string, _: unknown, command: Command) {
 
     log.verbose(opts.verbose);
 
-    if (!fs.existsSync(file)) {
-        log.error("File %s not found", file);
-        process.exit(1);
-    }
-
-    const db = new Db(file);
+    const db = Db.open(file);
 
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);

@@ -1,6 +1,4 @@
-import fs from "node:fs";
-
-import { Command } from "commander";
+import type { Command } from "commander";
 
 import * as log from "../log.js";
 import {
@@ -22,11 +20,10 @@ import { Crawler } from "../crawler.js";
 import { Progress } from "../progress.js";
 import { parse_url_option } from "../url.js";
 import { wait } from "../wait.js";
-import type { GlobalOptions } from "./global.js";
+import { FileOpenCommand, type GlobalOptions } from "./global.js";
 
-export const run = new Command("run")
+export const run = new FileOpenCommand("run")
     .description("run crawling")
-    .argument("<file>", "file path")
     .option("--rps [number]", "rps", Number.parseFloat, 1)
     .option("--user-agent [string]", "user agent")
     .option("--proxy [url...]", "proxy addr", parse_url_option)
@@ -47,12 +44,7 @@ async function action(file: string, _: unknown, command: Command) {
 
     log.verbose(opts.verbose);
 
-    if (!fs.existsSync(file)) {
-        log.error("File %s not found", file);
-        process.exit(1);
-    }
-
-    const db = new Db(file);
+    const db = Db.open(file);
 
     const include = new Include(db);
     const exclude = new Exclude(db);

@@ -1,14 +1,11 @@
-import fs from "node:fs";
-
-import { Command } from "commander";
+import type { Command } from "commander";
 
 import * as log from "../../log.js";
 import { Db, Exclude } from "../../db/index.js";
-import type { GlobalOptions } from "../global.js";
+import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
-export const remove = new Command("remove")
+export const remove = new FileOpenCommand("remove")
     .description("remove exclude patterns")
-    .argument("<file>", "file path")
     .requiredOption("--id <number...>", "ids", (value: string, prev?: number[]) => {
         try {
             return (prev ?? []).concat(Number.parseInt(value, 10));
@@ -27,12 +24,7 @@ async function action(file: string, _: unknown, command: Command) {
 
     log.verbose(opts.verbose);
 
-    if (!fs.existsSync(file)) {
-        log.error("File %s not found", file);
-        process.exit(1);
-    }
-
-    const db = new Db(file);
+    const db = Db.open(file);
 
     const exclude = new Exclude(db);
 

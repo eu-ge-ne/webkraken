@@ -5,14 +5,25 @@ import * as log from "../log.js";
 export class Db {
     #db: Database;
 
-    constructor(file_name: string) {
-        this.#db = new Sqlite(file_name);
+    private constructor(file_name: string, fileMustExist: boolean) {
+        this.#db = new Sqlite(file_name, { fileMustExist });
+
         this.#db.pragma("journal_mode = WAL");
 
         process.on("exit", () => {
             this.#db.close();
             log.debug("db file %s closed", file_name);
         });
+    }
+
+    static create(file_name: string) {
+        const db = new Db(file_name, true);
+        db.#init();
+        return db;
+    }
+
+    static open(file_name: string) {
+        return new Db(file_name, false);
     }
 
     transaction(fn: () => void) {
@@ -27,7 +38,7 @@ export class Db {
         return this.#db.prepare<T>(source);
     }
 
-    init() {
+    #init() {
         this.#db.exec(`
 CREATE TABLE IF NOT EXISTS "internal_tree" (
     "id"     INTEGER PRIMARY KEY ASC,

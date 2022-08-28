@@ -1,15 +1,10 @@
-import fs from "node:fs";
-
-import { Command } from "commander";
+import type { Command } from "commander";
 
 import * as log from "../../log.js";
 import { Db, External } from "../../db/index.js";
-import type { GlobalOptions } from "../global.js";
+import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
-export const external = new Command("external")
-    .description("list external urls")
-    .argument("<file>", "file path")
-    .action(action);
+export const external = new FileOpenCommand("external").description("list external urls").action(action);
 
 interface ListExternalOptions extends GlobalOptions {}
 
@@ -18,12 +13,7 @@ async function action(file: string, _: unknown, command: Command) {
 
     log.verbose(opts.verbose);
 
-    if (!fs.existsSync(file)) {
-        log.error("File %s not found", file);
-        process.exit(1);
-    }
-
-    const db = new Db(file);
+    const db = Db.open(file);
 
     const external = new External(db);
 
