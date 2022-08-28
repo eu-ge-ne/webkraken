@@ -17,13 +17,13 @@ export class Db {
     }
 
     static create(file_name: string) {
-        const db = new Db(file_name, true);
+        const db = new Db(file_name, false);
         db.#init();
         return db;
     }
 
     static open(file_name: string) {
-        return new Db(file_name, false);
+        return new Db(file_name, true);
     }
 
     transaction(fn: () => void) {
