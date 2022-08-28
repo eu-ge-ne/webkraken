@@ -38,6 +38,7 @@ async function action(file: string, _: unknown, command: Command) {
     const internal = new Internal(db);
     const exclude = new Exclude(db);
 
+    const parents = new Set<number>();
     const ids: number[] = [];
 
     for (const { parent, chunks } of internal_tree.scan_children()) {
@@ -45,6 +46,7 @@ async function action(file: string, _: unknown, command: Command) {
             const href = chunks.concat(qs).join("");
             if (opts.regexp.some((x) => x.test(href))) {
                 log.print(href);
+                parents.add(parent);
                 ids.push(id);
             }
         }
@@ -55,6 +57,18 @@ async function action(file: string, _: unknown, command: Command) {
 
         db.transaction(() => {
             internal.delete(ids);
+
+            for (let id of parents) {
+                while (id !== 0) {
+                    if (internal.count_children(id) !== 0 || internal_tree.count_children(id) !== 0) {
+                        break;
+                    }
+                    const parent = internal_tree.select_parent(id);
+                    internal_tree.delete(id);
+                    log.debug("Deleted tree item %i", id);
+                    id = parent;
+                }
+            }
 
             for (const regexp of opts.regexp) {
                 exclude.insert(regexp.source);

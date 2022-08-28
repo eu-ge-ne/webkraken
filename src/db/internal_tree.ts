@@ -8,7 +8,9 @@ export class InternalTree {
     readonly #st_select_all: Statement;
     readonly #st_select_children: Statement<{ parent: number }>;
     readonly #st_count_children: Statement<{ parent: number }>;
+    readonly #st_select_parent: Statement<{ id: number }>;
     readonly #st_insert: Statement<{ parent: number; chunk: string }>;
+    readonly #st_delete: Statement<{ id: number }>;
 
     constructor(db: Db) {
         this.#st_select_all = db.prepare(`
@@ -38,10 +40,21 @@ WHERE
     AND "parent" = :parent;
 `);
 
+        this.#st_select_parent = db.prepare(`
+SELECT "parent"
+FROM "internal_tree"
+WHERE "id" = :id;
+`);
+
         this.#st_insert = db.prepare(`
 INSERT INTO "internal_tree" ("parent", "chunk")
 VALUES (:parent, :chunk)
 RETURNING "id";
+`);
+
+        this.#st_delete = db.prepare(`
+DELETE FROM "internal_tree"
+WHERE "id"= :id;
 `);
     }
 
@@ -57,10 +70,18 @@ RETURNING "id";
         return this.#st_count_children.get({ parent }).count;
     }
 
+    select_parent(id: number): number {
+        return this.#st_select_parent.get({ id }).parent;
+    }
+
     insert(parent: number, chunk: string): number {
         const result = this.#st_insert.get({ parent, chunk });
         assert(typeof result.id === "number");
         return result.id;
+    }
+
+    delete(id: number) {
+        this.#st_delete.run({ id });
     }
 
     scan_children(max_depth = Number.MAX_SAFE_INTEGER) {
