@@ -1,15 +1,5 @@
 import * as log from "./log.js";
-import type {
-    Db,
-    InternalTree,
-    Internal,
-    InternalLink,
-    External,
-    ExternalLink,
-    Invalid,
-    InvalidLink,
-    Exclude,
-} from "./db/index.js";
+import type { Db, Internal, InternalLink, ExternalLink, InvalidLink, Include, Exclude } from "./db/index.js";
 import type { InvalidCache, ExternalCache, InternalCache } from "./cache/index.js";
 import type { Queue } from "./queue.js";
 import type { Request, RequestResult } from "./request.js";
@@ -26,31 +16,29 @@ interface Options {
 export class Crawler {
     readonly #tick = new Tick(100);
     readonly #rps_interval: number;
+    readonly #include_patterns: RegExp[];
     readonly #exclude_patterns: RegExp[];
-    readonly #origins: string[];
     #last_req = 0;
     #error_count = 0;
 
     constructor(
         private readonly db: Db,
-        private readonly invalid: Invalid,
-        private readonly invalid_cache: InvalidCache,
-        private readonly invalid_link: InvalidLink,
-        private readonly external: External,
-        private readonly external_cache: ExternalCache,
-        private readonly external_link: ExternalLink,
-        private readonly internal_tree: InternalTree,
+        private readonly include: Include,
+        private readonly exclude: Exclude,
         private readonly internal: Internal,
         private readonly internal_link: InternalLink,
+        private readonly external_link: ExternalLink,
+        private readonly invalid_link: InvalidLink,
         private readonly internal_cache: InternalCache,
-        private readonly exclude: Exclude,
+        private readonly external_cache: ExternalCache,
+        private readonly invalid_cache: InvalidCache,
         private readonly queue: Queue,
         private readonly request: Request,
         private readonly opts: Options
     ) {
         this.#rps_interval = 1_000 / this.opts.rps;
+        this.#include_patterns = this.include.select_all().map((x) => new RegExp(x.regexp));
         this.#exclude_patterns = this.exclude.select_all().map((x) => new RegExp(x.regexp));
-        this.#origins = this.internal_tree.select_origins();
     }
 
     get rps() {
@@ -165,10 +153,10 @@ export class Crawler {
 
             if (urls) {
                 for (const url of urls.valid) {
-                    const is_internal = this.#origins.includes(url.origin);
+                    const is_internal = this.#include_patterns.some((x) => x.test(url.href));
                     if (is_internal) {
-                        const excluded = this.#exclude_patterns.some((x) => x.test(url.href));
-                        if (excluded) {
+                        const is_excluded = this.#exclude_patterns.some((x) => x.test(url.href));
+                        if (is_excluded) {
                             log.debug("Excluded %s", url.href);
                         } else {
                             const { chunks, qs } = split_url(url);

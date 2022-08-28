@@ -6,7 +6,6 @@ import type { Db } from "./db.js";
 
 export class InternalTree {
     readonly #st_select_all: Statement;
-    readonly #st_select_origins: Statement;
     readonly #st_select_children: Statement<{ parent: number }>;
     readonly #st_count_children: Statement<{ parent: number }>;
     readonly #st_insert: Statement<{ parent: number; chunk: string }>;
@@ -19,12 +18,6 @@ SELECT
     "chunk"
 FROM "internal_tree"
 WHERE "id" != 0;
-`);
-
-        this.#st_select_origins = db.prepare(`
-SELECT "chunk"
-FROM "internal_tree"
-WHERE "parent" = 0;
 `);
 
         this.#st_select_children = db.prepare(`
@@ -54,10 +47,6 @@ RETURNING "id";
 
     select_all(): { id: number; parent: number; chunk: string }[] {
         return this.#st_select_all.all();
-    }
-
-    select_origins(): string[] {
-        return this.#st_select_origins.all().map((x) => x.chunk);
     }
 
     select_children(parent: number): { id: number; chunk: string }[] {

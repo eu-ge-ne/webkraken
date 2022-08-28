@@ -30,8 +30,6 @@ async function action(file: string, _: unknown, command: Command) {
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
 
-    log.info("Origins", { origins: internal_tree.select_origins() });
-
     log.info("Internal", {
         total: internal.count_all(),
         visited: internal.count_visited(),

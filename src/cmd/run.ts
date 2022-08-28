@@ -12,6 +12,7 @@ import {
     ExternalLink,
     Invalid,
     InvalidLink,
+    Include,
     Exclude,
 } from "../db/index.js";
 import { InvalidCache, ExternalCache, InternalCache } from "../cache/index.js";
@@ -51,15 +52,10 @@ async function action(file: string, _: unknown, command: Command) {
         process.exit(1);
     }
 
-    log.info("Running", {
-        options: {
-            ...opts,
-            proxy: opts.proxy?.map((x) => x.origin),
-        },
-    });
-
     const db = new Db(file);
 
+    const include = new Include(db);
+    const exclude = new Exclude(db);
     const invalid = new Invalid(db);
     const invalid_link = new InvalidLink(db);
     const invalid_cache = new InvalidCache(invalid);
@@ -70,7 +66,6 @@ async function action(file: string, _: unknown, command: Command) {
     const internal = new Internal(db);
     const internal_link = new InternalLink(db);
     const internal_cache = new InternalCache(internal_tree, internal);
-    const exclude = new Exclude(db);
 
     const queue = new Queue();
     const request = new Request({
@@ -80,17 +75,15 @@ async function action(file: string, _: unknown, command: Command) {
 
     const crawler = new Crawler(
         db,
-        invalid,
-        invalid_cache,
-        invalid_link,
-        external,
-        external_cache,
-        external_link,
-        internal_tree,
+        include,
+        exclude,
         internal,
         internal_link,
+        external_link,
+        invalid_link,
         internal_cache,
-        exclude,
+        external_cache,
+        invalid_cache,
         queue,
         request,
         {

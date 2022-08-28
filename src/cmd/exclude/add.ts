@@ -9,7 +9,7 @@ import type { GlobalOptions } from "../global.js";
 export const add = new Command("add")
     .description("add exclude patterns")
     .argument("<file>", "file path")
-    .requiredOption("--regexp <string...>", "regexps", (value: string, prev?: RegExp[]) => {
+    .requiredOption("--regexp <regexp...>", "exclude patterns", (value: string, prev?: RegExp[]) => {
         try {
             return (prev ?? []).concat(new RegExp(value));
         } catch (err) {
@@ -34,10 +34,10 @@ async function action(file: string, _: unknown, command: Command) {
         process.exit(1);
     }
 
-    log.print("Excluding:");
+    log.print("Excluding patterns:");
 
     for (const regexp of opts.regexp) {
-        log.print(regexp);
+        log.print(regexp.source);
     }
 
     const db = new Db(file);
@@ -45,6 +45,7 @@ async function action(file: string, _: unknown, command: Command) {
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
     const exclude = new Exclude(db);
+
     const ids: number[] = [];
 
     for (const { parent, chunks } of internal_tree.scan_children()) {
@@ -58,7 +59,7 @@ async function action(file: string, _: unknown, command: Command) {
     }
 
     if (!opts.dryRun) {
-        log.print("Removing %i internal hrefs", ids.length);
+        log.print("Removing %i excluded internal urls", ids.length);
 
         db.transaction(() => {
             internal.delete(ids);

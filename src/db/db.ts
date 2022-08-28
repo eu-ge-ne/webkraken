@@ -80,6 +80,11 @@ CREATE TABLE IF NOT EXISTS "invalid_link" (
     UNIQUE ("from", "to")
 );
 
+CREATE TABLE IF NOT EXISTS "include" (
+    "id"     INTEGER PRIMARY KEY ASC,
+    "regexp" TEXT NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS "exclude" (
     "id"     INTEGER PRIMARY KEY ASC,
     "regexp" TEXT NOT NULL UNIQUE
