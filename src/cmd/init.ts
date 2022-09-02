@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../log.js";
-import { Db, InternalTree, Internal, Include } from "../db/index.js";
+import { Db, InternalTree, Include } from "../db/index.js";
 import { InternalCache } from "../cache/index.js";
 import { parse_url_option, split_url } from "../url.js";
 import { FileCreateCommand, type GlobalOptions } from "./global.js";
@@ -52,9 +52,8 @@ async function action(file: string, _: unknown, command: Command) {
     const db = Db.create(file);
 
     const internal_tree = new InternalTree(db);
-    const internal = new Internal(db);
     const include = new Include(db);
-    const internal_cache = new InternalCache(internal_tree, internal);
+    const internal_cache = new InternalCache(internal_tree, db);
 
     db.transaction(() => {
         for (const regexp of opts.include) {

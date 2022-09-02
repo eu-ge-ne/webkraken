@@ -28,9 +28,10 @@ export class Progress {
         const error_count =
             this.crawler.error_count === 0 ? chalk.gray(0) : chalk.yellowBright(this.crawler.error_count);
 
-        const start_str = `${elapsed} ${rps} ${this.queue.pop_count} ${error_count}`;
+        const count_total = this.internal_cache.count_visited + this.internal_cache.count_pending;
 
-        const end_str = `${this.internal_cache.count_visited}/${this.internal_cache.count_pending} ${this.internal_cache.count}|${this.internal_cache.count_tree}`;
+        const start_str = `${elapsed} ${rps} ${this.queue.pop_count} ${error_count}`;
+        const end_str = `${this.internal_cache.count_visited}/${this.internal_cache.count_pending} ${count_total}|${this.internal_cache.count_tree}`;
 
         let progress = " ";
 
@@ -43,7 +44,7 @@ export class Progress {
                 string_width(END);
 
             if (width_available >= 10) {
-                const d = width_available / this.internal_cache.count;
+                const d = width_available / count_total;
                 const w0 = Math.round(d * this.internal_cache.count_visited);
                 const w1 = width_available - w0;
                 progress = START + PR0.repeat(w0) + PR1.repeat(w1) + END;

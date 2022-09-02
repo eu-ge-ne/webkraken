@@ -1,31 +1,22 @@
 import assert from "node:assert/strict";
 
 import type { InternalTree } from "../db/internal_tree";
-import type { Internal } from "../db/internal.js";
+import type { Db } from "../db/db.js";
 
 export class InternalCache {
     readonly #tree: { id: number; parent: number; chunk: string }[];
-    readonly #leafs = new Map<string, number>();
     #visited: number;
     #pending: number;
 
-    constructor(private readonly internal_tree: InternalTree, private readonly internal: Internal) {
+    constructor(private readonly internal_tree: InternalTree, private readonly db: Db) {
         this.#tree = this.internal_tree.select_all();
 
-        for (const { id, parent, qs } of this.internal.select_all()) {
-            this.#leafs.set(parent + qs, id);
-        }
-
-        this.#visited = this.internal.count_visited();
-        this.#pending = this.internal.count_pending();
+        this.#visited = this.db.internal_count_visited.run();
+        this.#pending = this.db.internal_count_pending.run();
     }
 
     get count_tree() {
         return this.#tree.length;
-    }
-
-    get count() {
-        return this.#leafs.size;
     }
 
     get count_visited() {
@@ -64,23 +55,18 @@ export class InternalCache {
 
         assert(parent !== 0);
 
-        const key = parent + qs;
+        let id = this.db.internal_select_id.run(parent, qs);
 
-        let id = this.internal.upsert(parent, qs);
-
-        if (typeof id === "number") {
-            this.#leafs.set(key, id);
+        if (!id) {
+            id = this.db.internal_insert.run(parent, qs);
             this.#pending += 1;
-        } else {
-            id = this.#leafs.get(key);
-            assert(id);
         }
 
         return id;
     }
 
     visited(id: number, status_code: number, time_total?: number) {
-        this.internal.update_visited(id, status_code, time_total);
+        this.db.internal_update_visited.run(id, status_code, time_total);
         this.#visited += 1;
         this.#pending -= 1;
     }

@@ -57,7 +57,8 @@ async function action(file: string, _: unknown, command: Command) {
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
     const internal_link = new InternalLink(db);
-    const internal_cache = new InternalCache(internal_tree, internal);
+
+    const internal_cache = new InternalCache(internal_tree, db);
 
     const queue = new Queue();
     const request = new Request({

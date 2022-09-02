@@ -1,6 +1,13 @@
+import assert from "node:assert/strict";
+
 import Sqlite, { Database } from "better-sqlite3";
 
 import * as log from "../log.js";
+import { InternalSelectId } from "./internal/select_id.js";
+import { InternalCountVisited } from "./internal/count_visited.js";
+import { InternalCountPending } from "./internal/count_pending.js";
+import { InternalInsert } from "./internal/insert.js";
+import { InternalUpdateVisited } from "./internal/update_visited.js";
 
 export class Db {
     #db: Database;
@@ -102,4 +109,46 @@ CREATE TABLE IF NOT EXISTS "exclude" (
 );
 `);
     }
+
+    @lazy
+    get internal_select_id() {
+        return new InternalSelectId(this);
+    }
+
+    @lazy
+    get internal_count_visited() {
+        return new InternalCountVisited(this);
+    }
+
+    @lazy
+    get internal_count_pending() {
+        return new InternalCountPending(this);
+    }
+
+    @lazy
+    get internal_insert() {
+        return new InternalInsert(this);
+    }
+
+    @lazy
+    get internal_update_visited() {
+        return new InternalUpdateVisited(this);
+    }
+}
+
+function lazy(target: any, key: string, desc: PropertyDescriptor) {
+    let cached = false;
+    let value: unknown;
+
+    assert(desc.get);
+    const get = desc.get;
+
+    desc.get = function () {
+        if (!cached) {
+            value = get.call(this);
+            cached = true;
+            log.debug("%s - lazy get", key);
+        }
+        return value;
+    };
 }
