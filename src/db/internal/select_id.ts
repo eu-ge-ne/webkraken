@@ -6,7 +6,7 @@ export class InternalSelectId {
     readonly #st: Statement<{ parent: number; qs: string }>;
 
     constructor(db: Db) {
-        this.#st = db.prepare<{ parent: number; qs: string }>(`
+        this.#st = db.prepare(`
 SELECT "id"
 FROM "internal"
 WHERE

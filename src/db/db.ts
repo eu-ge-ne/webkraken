@@ -20,13 +20,15 @@ import { InternalInsert } from "./internal/insert.js";
 import { InternalUpdateVisited } from "./internal/update_visited.js";
 import { InternalDelete } from "./internal/delete.js";
 import { InternalLinkInsert } from "./internal_link/insert.js";
+import { ExternalSelectId } from "./external/select_id.js";
 import { ExternalSelectAll } from "./external/select_all.js";
 import { ExternalCountAll } from "./external/count_all.js";
-import { ExternalUpsert } from "./external/upsert.js";
+import { ExternalInsert } from "./external/insert.js";
 import { ExternalLinkInsert } from "./external_link/insert.js";
+import { InvalidSelectId } from "./invalid/select_id.js";
 import { InvalidSelectAll } from "./invalid/select_all.js";
 import { InvalidCountAll } from "./invalid/count_all.js";
-import { InvalidUpsert } from "./invalid/upsert.js";
+import { InvalidInsert } from "./invalid/insert.js";
 import { InvalidLinkInsert } from "./invalid_link/insert.js";
 import { IncludeSelectAll } from "./include/select_all.js";
 import { IncludeInsert } from "./include/insert.js";
@@ -222,6 +224,11 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @lazy
+    get external_select_id() {
+        return new ExternalSelectId(this);
+    }
+
+    @lazy
     get external_select_all() {
         return new ExternalSelectAll(this);
     }
@@ -232,13 +239,18 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @lazy
-    get external_upsert() {
-        return new ExternalUpsert(this);
+    get external_insert() {
+        return new ExternalInsert(this);
     }
 
     @lazy
     get external_link_insert() {
         return new ExternalLinkInsert(this);
+    }
+
+    @lazy
+    get invalid_select_id() {
+        return new InvalidSelectId(this);
     }
 
     @lazy
@@ -252,8 +264,8 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @lazy
-    get invalid_upsert() {
-        return new InvalidUpsert(this);
+    get invalid_insert() {
+        return new InvalidInsert(this);
     }
 
     @lazy
