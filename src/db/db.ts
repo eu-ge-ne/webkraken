@@ -4,9 +4,12 @@ import Sqlite, { Database } from "better-sqlite3";
 
 import * as log from "../log.js";
 import { InternalTreeSelectAll } from "./internal_tree/select_all.js";
+import { InternalTreeCountAll } from "./internal_tree/count_all.js";
+import { InternalTreeSelectId } from "./internal_tree/select_id.js";
+import { InternalTreeSelectParent } from "./internal_tree/select_parent.js";
+import { InternalTreeSelectParentChunk } from "./internal_tree/select_parent_chunk.js";
 import { InternalTreeScanChildren } from "./internal_tree/scan_children.js";
 import { InternalTreeCountChildren } from "./internal_tree/count_children.js";
-import { InternalTreeSelectParent } from "./internal_tree/select_parent.js";
 import { InternalTreeInsert } from "./internal_tree/insert.js";
 import { InternalTreeDelete } from "./internal_tree/delete.js";
 import { InternalCountAll } from "./internal/count_all.js";
@@ -144,6 +147,26 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @lazy
+    get internal_tree_count_all() {
+        return new InternalTreeCountAll(this);
+    }
+
+    @lazy
+    get internal_tree_select_id() {
+        return new InternalTreeSelectId(this);
+    }
+
+    @lazy
+    get internal_tree_select_parent() {
+        return new InternalTreeSelectParent(this);
+    }
+
+    @lazy
+    get internal_tree_select_parent_chunk() {
+        return new InternalTreeSelectParentChunk(this);
+    }
+
+    @lazy
     get internal_tree_scan_children() {
         return new InternalTreeScanChildren(this);
     }
@@ -151,11 +174,6 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @lazy
     get internal_tree_count_children() {
         return new InternalTreeCountChildren(this);
-    }
-
-    @lazy
-    get internal_tree_select_parent() {
-        return new InternalTreeSelectParent(this);
     }
 
     @lazy
