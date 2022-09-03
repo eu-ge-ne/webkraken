@@ -2,7 +2,6 @@ import type { Command } from "commander";
 
 import * as log from "../log.js";
 import { Db } from "../db/db.js";
-import { InvalidCache, ExternalCache, InternalCache } from "../cache/index.js";
 import { Queue } from "../queue.js";
 import { Request } from "../request.js";
 import { Crawler } from "../crawler.js";
@@ -35,22 +34,18 @@ async function action(file: string, _: unknown, command: Command) {
 
     const db = Db.open(file);
 
-    const internal_cache = new InternalCache(db);
-    const external_cache = new ExternalCache(db);
-    const invalid_cache = new InvalidCache(db);
-
     const queue = new Queue();
     const request = new Request({
         user_agent: opts.userAgent,
         proxy: opts.proxy,
     });
 
-    const crawler = new Crawler(db, internal_cache, external_cache, invalid_cache, queue, request, {
+    const crawler = new Crawler(db, queue, request, {
         rps: opts.rps,
         batch_size: 1000,
     });
 
-    const progress = new Progress(internal_cache, queue, crawler);
+    const progress = new Progress(db, queue, crawler);
 
     const crawling = crawler.run();
     let crawling_completed = false;

@@ -2,8 +2,8 @@ import type { Command } from "commander";
 
 import * as log from "../log.js";
 import { Db } from "../db/db.js";
-import { InternalCache } from "../cache/index.js";
-import { parse_url_option, split_url } from "../url.js";
+import { parse_url_option } from "../url.js";
+import { touch_internal } from "../touch.js";
 import { FileCreateCommand, type GlobalOptions } from "./global.js";
 
 export const init = new FileCreateCommand("init")
@@ -51,16 +51,13 @@ async function action(file: string, _: unknown, command: Command) {
 
     const db = Db.create(file);
 
-    const internal_cache = new InternalCache(db);
-
     db.transaction(() => {
         for (const regexp of opts.include) {
             db.include_insert.run(regexp.source);
         }
 
         for (const url of opts.url) {
-            const { chunks, qs } = split_url(url);
-            internal_cache.touch(chunks, qs);
+            touch_internal(db, url);
         }
     });
 }

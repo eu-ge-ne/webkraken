@@ -1,12 +1,12 @@
 import * as log from "./log.js";
 import type { Db } from "./db/db.js";
-import type { InvalidCache, ExternalCache, InternalCache } from "./cache/index.js";
 import type { Queue } from "./queue.js";
 import type { Request, RequestResult } from "./request.js";
-import { parse_urls, type ParsedUrls, split_url } from "./url.js";
+import { parse_urls, type ParsedUrls } from "./url.js";
 import { Tick } from "./tick.js";
 import { parse_html } from "./parser.js";
 import { wait } from "./wait.js";
+import { touch_internal, touch_external, touch_invalid } from "./touch.js";
 
 interface Options {
     readonly rps: number;
@@ -23,9 +23,6 @@ export class Crawler {
 
     constructor(
         private readonly db: Db,
-        private readonly internal_cache: InternalCache,
-        private readonly external_cache: ExternalCache,
-        private readonly invalid_cache: InvalidCache,
         private readonly queue: Queue,
         private readonly request: Request,
         private readonly opts: Options
@@ -120,7 +117,7 @@ export class Crawler {
             const pending = this.db.internal_select_pending.run(this.opts.batch_size);
             const items = pending.map(({ id, parent, qs }) => ({
                 id,
-                href: this.internal_cache.build_href(parent, qs),
+                href: this.#build_href(parent, qs),
             }));
 
             this.queue.push(items);
@@ -141,9 +138,21 @@ export class Crawler {
         }
     }
 
+    #build_href(parent: number, qs: string) {
+        let chunks: string[] = [qs];
+
+        while (parent !== 0) {
+            const item = this.db.internal_tree_select_parent_chunk.run(parent);
+            chunks.unshift(item.chunk);
+            parent = item.parent;
+        }
+
+        return chunks.join("");
+    }
+
     #visited(visit_id: number, res: RequestResult, urls?: ParsedUrls) {
         this.db.transaction(() => {
-            this.internal_cache.visited(visit_id, res.status_code, res.time_total);
+            this.db.internal_update_visited.run(visit_id, res.status_code, res.time_total);
 
             if (urls) {
                 for (const url of urls.valid) {
@@ -153,18 +162,17 @@ export class Crawler {
                         if (is_excluded) {
                             log.debug("Excluded %s", url.href);
                         } else {
-                            const { chunks, qs } = split_url(url);
-                            const to_id = this.internal_cache.touch(chunks, qs);
+                            const to_id = touch_internal(this.db, url);
                             this.db.internal_link_insert.run(visit_id, to_id);
                         }
                     } else {
-                        const to_id = this.external_cache.touch(url.href);
+                        const to_id = touch_external(this.db, url);
                         this.db.external_link_insert.run(visit_id, to_id);
                     }
                 }
 
                 for (const href of urls.invalid) {
-                    const to_id = this.invalid_cache.touch(href);
+                    const to_id = touch_invalid(this.db, href);
                     this.db.invalid_link_insert.run(visit_id, to_id);
                 }
             }
