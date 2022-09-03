@@ -1,5 +1,5 @@
 import * as log from "./log.js";
-import type { Db, Internal, InternalLink, ExternalLink, InvalidLink, Include, Exclude } from "./db/index.js";
+import type { Db } from "./db/index.js";
 import type { InvalidCache, ExternalCache, InternalCache } from "./cache/index.js";
 import type { Queue } from "./queue.js";
 import type { Request, RequestResult } from "./request.js";
@@ -23,12 +23,6 @@ export class Crawler {
 
     constructor(
         private readonly db: Db,
-        private readonly include: Include,
-        private readonly exclude: Exclude,
-        private readonly internal: Internal,
-        private readonly internal_link: InternalLink,
-        private readonly external_link: ExternalLink,
-        private readonly invalid_link: InvalidLink,
         private readonly internal_cache: InternalCache,
         private readonly external_cache: ExternalCache,
         private readonly invalid_cache: InvalidCache,
@@ -37,8 +31,8 @@ export class Crawler {
         private readonly opts: Options
     ) {
         this.#rps_interval = 1_000 / this.opts.rps;
-        this.#include_patterns = this.include.select_all().map((x) => new RegExp(x.regexp));
-        this.#exclude_patterns = this.exclude.select_all().map((x) => new RegExp(x.regexp));
+        this.#include_patterns = this.db.include_select_all.run().map((x) => new RegExp(x.regexp));
+        this.#exclude_patterns = this.db.exclude_select_all.run().map((x) => new RegExp(x.regexp));
     }
 
     get rps() {
@@ -123,7 +117,7 @@ export class Crawler {
         let item = this.queue.pop();
 
         if (!item) {
-            const pending = this.internal.select_pending(this.opts.batch_size);
+            const pending = this.db.internal_select_pending.run(this.opts.batch_size);
             const items = pending.map(({ id, parent, qs }) => ({
                 id,
                 href: this.internal_cache.build_href(parent, qs),
@@ -161,17 +155,17 @@ export class Crawler {
                         } else {
                             const { chunks, qs } = split_url(url);
                             const to_id = this.internal_cache.touch(chunks, qs);
-                            this.internal_link.insert(visit_id, to_id);
+                            this.db.internal_link_insert.run(visit_id, to_id);
                         }
                     } else {
                         const to_id = this.external_cache.touch(url.href);
-                        this.external_link.insert(visit_id, to_id);
+                        this.db.external_link_insert.run(visit_id, to_id);
                     }
                 }
 
                 for (const href of urls.invalid) {
                     const to_id = this.invalid_cache.touch(href);
-                    this.invalid_link.insert(visit_id, to_id);
+                    this.db.invalid_link_insert.run(visit_id, to_id);
                 }
             }
         });

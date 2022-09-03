@@ -5,7 +5,6 @@ import type { Db } from "./db.js";
 export class Internal {
     readonly #st_select_all: Statement;
     readonly #st_count_all: Statement;
-    readonly #st_select_pending: Statement;
     readonly #st_select_children: Statement<{ parent: number }>;
     readonly #st_count_children: Statement<{ parent: number }>;
 
@@ -21,16 +20,6 @@ FROM "internal";
         this.#st_count_all = db.prepare(`
 SELECT COUNT(*) AS "count"
 FROM "internal";
-`);
-
-        this.#st_select_pending = db.prepare(`
-SELECT
-    "id",
-    "parent",
-    "qs"
-FROM "internal"
-WHERE "visited" = 0
-LIMIT :limit;
 `);
 
         this.#st_select_children = db.prepare(`
@@ -54,10 +43,6 @@ WHERE "parent" = :parent;
 
     count_all(): number {
         return this.#st_count_all.get().count;
-    }
-
-    select_pending(limit: number): { id: number; parent: number; qs: string }[] {
-        return this.#st_select_pending.all({ limit });
     }
 
     select_children(parent: number): { id: number; qs: string }[] {

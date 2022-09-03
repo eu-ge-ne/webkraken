@@ -5,9 +5,15 @@ import Sqlite, { Database } from "better-sqlite3";
 import * as log from "../log.js";
 import { InternalSelectId } from "./internal/select_id.js";
 import { InternalCountVisited } from "./internal/count_visited.js";
+import { InternalSelectPending } from "./internal/select_pending.js";
 import { InternalCountPending } from "./internal/count_pending.js";
 import { InternalInsert } from "./internal/insert.js";
 import { InternalUpdateVisited } from "./internal/update_visited.js";
+import { InternalLinkInsert } from "./internal_link/insert.js";
+import { ExternalLinkInsert } from "./external_link/insert.js";
+import { InvalidLinkInsert } from "./invalid_link/insert.js";
+import { IncludeSelectAll } from "./include/select_all.js";
+import { ExcludeSelectAll } from "./exclude/select_all.js";
 
 export class Db {
     #db: Database;
@@ -121,6 +127,11 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @lazy
+    get internal_select_pending() {
+        return new InternalSelectPending(this);
+    }
+
+    @lazy
     get internal_count_pending() {
         return new InternalCountPending(this);
     }
@@ -133,6 +144,31 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @lazy
     get internal_update_visited() {
         return new InternalUpdateVisited(this);
+    }
+
+    @lazy
+    get internal_link_insert() {
+        return new InternalLinkInsert(this);
+    }
+
+    @lazy
+    get external_link_insert() {
+        return new ExternalLinkInsert(this);
+    }
+
+    @lazy
+    get invalid_link_insert() {
+        return new InvalidLinkInsert(this);
+    }
+
+    @lazy
+    get include_select_all() {
+        return new IncludeSelectAll(this);
+    }
+
+    @lazy
+    get exclude_select_all() {
+        return new ExcludeSelectAll(this);
     }
 }
 
