@@ -14,6 +14,9 @@ import { InternalInsert } from "./internal/insert.js";
 import { InternalUpdateVisited } from "./internal/update_visited.js";
 import { InternalDelete } from "./internal/delete.js";
 import { InternalLinkInsert } from "./internal_link/insert.js";
+import { ExternalSelectAll } from "./external/select_all.js";
+import { ExternalCountAll } from "./external/count_all.js";
+import { ExternalUpsert } from "./external/upsert.js";
 import { ExternalLinkInsert } from "./external_link/insert.js";
 import { InvalidLinkInsert } from "./invalid_link/insert.js";
 import { IncludeSelectAll } from "./include/select_all.js";
@@ -177,6 +180,21 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @lazy
     get internal_link_insert() {
         return new InternalLinkInsert(this);
+    }
+
+    @lazy
+    get external_select_all() {
+        return new ExternalSelectAll(this);
+    }
+
+    @lazy
+    get external_count_all() {
+        return new ExternalCountAll(this);
+    }
+
+    @lazy
+    get external_upsert() {
+        return new ExternalUpsert(this);
     }
 
     @lazy
