@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../../log.js";
-import { Db, InternalTree } from "../../db/index.js";
+import { Db } from "../../db/db.js";
 import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
 export const add = new FileOpenCommand("add")
@@ -34,12 +34,10 @@ async function action(file: string, _: unknown, command: Command) {
 
     const db = Db.open(file);
 
-    const internal_tree = new InternalTree(db);
-
     const parents = new Set<number>();
     const ids: number[] = [];
 
-    for (const { parent, chunks } of internal_tree.scan_children()) {
+    for (const { parent, chunks } of db.internal_tree_scan_children.run()) {
         for (const { id, qs } of db.internal_select_children.run(parent)) {
             const href = chunks.concat(qs).join("");
             if (opts.regexp.some((x) => x.test(href))) {
@@ -58,11 +56,11 @@ async function action(file: string, _: unknown, command: Command) {
 
             for (let id of parents) {
                 while (id !== 0) {
-                    if (db.internal_count_children.run(id) !== 0 || internal_tree.count_children(id) !== 0) {
+                    if (db.internal_count_children.run(id) !== 0 || db.internal_tree_count_children.run(id) !== 0) {
                         break;
                     }
-                    const parent = internal_tree.select_parent(id);
-                    internal_tree.delete(id);
+                    const parent = db.internal_tree_select_parent.run(id);
+                    db.internal_tree_delete.run(id);
                     log.debug("Deleted tree item %i", id);
                     id = parent;
                 }

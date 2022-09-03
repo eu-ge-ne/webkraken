@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 
-import type { InternalTree } from "../db/internal_tree";
 import type { Db } from "../db/db.js";
 
 export class InternalCache {
@@ -8,9 +7,8 @@ export class InternalCache {
     #visited: number;
     #pending: number;
 
-    constructor(private readonly internal_tree: InternalTree, private readonly db: Db) {
-        this.#tree = this.internal_tree.select_all();
-
+    constructor(private readonly db: Db) {
+        this.#tree = this.db.internal_tree_select_all.run();
         this.#visited = this.db.internal_count_visited.run();
         this.#pending = this.db.internal_count_pending.run();
     }
@@ -46,7 +44,7 @@ export class InternalCache {
         for (const chunk of chunks) {
             let item = this.#tree.find((x) => x.parent === parent && x.chunk === chunk);
             if (!item) {
-                const id = this.internal_tree.insert(parent, chunk);
+                const id = this.db.internal_tree_insert.run(parent, chunk);
                 item = { id, parent, chunk };
                 this.#tree.push(item);
             }

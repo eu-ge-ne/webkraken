@@ -3,6 +3,12 @@ import assert from "node:assert/strict";
 import Sqlite, { Database } from "better-sqlite3";
 
 import * as log from "../log.js";
+import { InternalTreeSelectAll } from "./internal_tree/select_all.js";
+import { InternalTreeScanChildren } from "./internal_tree/scan_children.js";
+import { InternalTreeCountChildren } from "./internal_tree/count_children.js";
+import { InternalTreeSelectParent } from "./internal_tree/select_parent.js";
+import { InternalTreeInsert } from "./internal_tree/insert.js";
+import { InternalTreeDelete } from "./internal_tree/delete.js";
 import { InternalCountAll } from "./internal/count_all.js";
 import { InternalSelectId } from "./internal/select_id.js";
 import { InternalSelectChildren } from "./internal/select_children.js";
@@ -128,6 +134,36 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     "regexp" TEXT NOT NULL UNIQUE
 );
 `);
+    }
+
+    @lazy
+    get internal_tree_select_all() {
+        return new InternalTreeSelectAll(this);
+    }
+
+    @lazy
+    get internal_tree_scan_children() {
+        return new InternalTreeScanChildren(this);
+    }
+
+    @lazy
+    get internal_tree_count_children() {
+        return new InternalTreeCountChildren(this);
+    }
+
+    @lazy
+    get internal_tree_select_parent() {
+        return new InternalTreeSelectParent(this);
+    }
+
+    @lazy
+    get internal_tree_insert() {
+        return new InternalTreeInsert(this);
+    }
+
+    @lazy
+    get internal_tree_delete() {
+        return new InternalTreeDelete(this);
     }
 
     @lazy

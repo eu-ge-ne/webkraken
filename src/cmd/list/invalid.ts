@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../../log.js";
-import { Db } from "../../db/index.js";
+import { Db } from "../../db/db.js";
 import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
 export const invalid = new FileOpenCommand("invalid").description("list invalid urls").action(action);

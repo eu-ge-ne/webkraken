@@ -1,5 +1,5 @@
 import * as log from "./log.js";
-import type { Db } from "./db/index.js";
+import type { Db } from "./db/db.js";
 import type { InvalidCache, ExternalCache, InternalCache } from "./cache/index.js";
 import type { Queue } from "./queue.js";
 import type { Request, RequestResult } from "./request.js";
