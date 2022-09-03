@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../../log.js";
-import { Db, Include } from "../../db/index.js";
+import { Db } from "../../db/index.js";
 import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
 export const add = new FileOpenCommand("add")
@@ -32,11 +32,9 @@ async function action(file: string, _: unknown, command: Command) {
 
     const db = Db.open(file);
 
-    const include = new Include(db);
-
     db.transaction(() => {
         for (const regexp of opts.regexp) {
-            include.insert(regexp.source);
+            db.include_insert.run(regexp.source);
         }
     });
 }

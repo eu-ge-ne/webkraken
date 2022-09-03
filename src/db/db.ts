@@ -13,6 +13,8 @@ import { InternalLinkInsert } from "./internal_link/insert.js";
 import { ExternalLinkInsert } from "./external_link/insert.js";
 import { InvalidLinkInsert } from "./invalid_link/insert.js";
 import { IncludeSelectAll } from "./include/select_all.js";
+import { IncludeInsert } from "./include/insert.js";
+import { IncludeDelete } from "./include/delete.js";
 import { ExcludeSelectAll } from "./exclude/select_all.js";
 
 export class Db {
@@ -164,6 +166,16 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @lazy
     get include_select_all() {
         return new IncludeSelectAll(this);
+    }
+
+    @lazy
+    get include_insert() {
+        return new IncludeInsert(this);
+    }
+
+    @lazy
+    get include_delete() {
+        return new IncludeDelete(this);
     }
 
     @lazy
