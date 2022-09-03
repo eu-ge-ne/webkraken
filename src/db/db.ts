@@ -3,12 +3,16 @@ import assert from "node:assert/strict";
 import Sqlite, { Database } from "better-sqlite3";
 
 import * as log from "../log.js";
+import { InternalCountAll } from "./internal/count_all.js";
 import { InternalSelectId } from "./internal/select_id.js";
+import { InternalSelectChildren } from "./internal/select_children.js";
+import { InternalCountChildren } from "./internal/count_children.js";
 import { InternalCountVisited } from "./internal/count_visited.js";
 import { InternalSelectPending } from "./internal/select_pending.js";
 import { InternalCountPending } from "./internal/count_pending.js";
 import { InternalInsert } from "./internal/insert.js";
 import { InternalUpdateVisited } from "./internal/update_visited.js";
+import { InternalDelete } from "./internal/delete.js";
 import { InternalLinkInsert } from "./internal_link/insert.js";
 import { ExternalLinkInsert } from "./external_link/insert.js";
 import { InvalidLinkInsert } from "./invalid_link/insert.js";
@@ -121,8 +125,23 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @lazy
+    get internal_count_all() {
+        return new InternalCountAll(this);
+    }
+
+    @lazy
     get internal_select_id() {
         return new InternalSelectId(this);
+    }
+
+    @lazy
+    get internal_select_children() {
+        return new InternalSelectChildren(this);
+    }
+
+    @lazy
+    get internal_count_children() {
+        return new InternalCountChildren(this);
     }
 
     @lazy
@@ -148,6 +167,11 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @lazy
     get internal_update_visited() {
         return new InternalUpdateVisited(this);
+    }
+
+    @lazy
+    get internal_delete() {
+        return new InternalDelete(this);
     }
 
     @lazy

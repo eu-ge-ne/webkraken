@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../../log.js";
-import { Db, InternalTree, Internal } from "../../db/index.js";
+import { Db, InternalTree } from "../../db/index.js";
 import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
 export const tree = new FileOpenCommand("tree")
@@ -32,11 +32,10 @@ async function action(file: string, _: unknown, command: Command) {
     const db = Db.open(file);
 
     const internal_tree = new InternalTree(db);
-    const internal = new Internal(db);
 
     for (const { parent, chunks } of internal_tree.scan_children(opts.depth)) {
         let children_count = internal_tree.count_children(parent);
-        let url_count = internal.count_children(parent);
+        let url_count = db.internal_count_children.run(parent);
 
         log.print(
             "%s%s\t\t\t\t%i children, %i urls",

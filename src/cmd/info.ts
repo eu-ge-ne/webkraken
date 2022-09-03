@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../log.js";
-import { Db, Internal, External, Invalid } from "../db/index.js";
+import { Db, External, Invalid } from "../db/index.js";
 import { FileOpenCommand, type GlobalOptions } from "./global.js";
 
 export const info = new FileOpenCommand("info").description("show crawl data file info").action(action);
@@ -17,10 +17,9 @@ async function action(file: string, _: unknown, command: Command) {
 
     const invalid = new Invalid(db);
     const external = new External(db);
-    const internal = new Internal(db);
 
     log.info("Internal", {
-        total: internal.count_all(),
+        total: db.internal_count_all.run(),
         visited: db.internal_count_visited.run(),
         pending: db.internal_count_pending.run(),
     });

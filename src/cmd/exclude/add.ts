@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../../log.js";
-import { Db, InternalTree, Internal } from "../../db/index.js";
+import { Db, InternalTree } from "../../db/index.js";
 import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
 export const add = new FileOpenCommand("add")
@@ -35,13 +35,12 @@ async function action(file: string, _: unknown, command: Command) {
     const db = Db.open(file);
 
     const internal_tree = new InternalTree(db);
-    const internal = new Internal(db);
 
     const parents = new Set<number>();
     const ids: number[] = [];
 
     for (const { parent, chunks } of internal_tree.scan_children()) {
-        for (const { id, qs } of internal.select_children(parent)) {
+        for (const { id, qs } of db.internal_select_children.run(parent)) {
             const href = chunks.concat(qs).join("");
             if (opts.regexp.some((x) => x.test(href))) {
                 log.print(href);
@@ -55,11 +54,11 @@ async function action(file: string, _: unknown, command: Command) {
         log.print("Removing %i excluded internal urls", ids.length);
 
         db.transaction(() => {
-            internal.delete(ids);
+            db.internal_delete.run(ids);
 
             for (let id of parents) {
                 while (id !== 0) {
-                    if (internal.count_children(id) !== 0 || internal_tree.count_children(id) !== 0) {
+                    if (db.internal_count_children.run(id) !== 0 || internal_tree.count_children(id) !== 0) {
                         break;
                     }
                     const parent = internal_tree.select_parent(id);
