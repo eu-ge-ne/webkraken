@@ -1,18 +1,18 @@
 import assert from "node:assert/strict";
 
-import type { Invalid } from "../db/invalid.js";
+import type { Db } from "../db/db.js";
 
 export class InvalidCache {
     readonly #items = new Map<string, number>();
 
-    constructor(private readonly invalid: Invalid) {
-        for (const item of this.invalid.select_all()) {
+    constructor(private readonly db: Db) {
+        for (const item of this.db.invalid_select_all.run()) {
             this.#items.set(item.href, item.id);
         }
     }
 
     touch(href: string): number {
-        let id = this.invalid.upsert(href);
+        let id = this.db.invalid_upsert.run(href);
 
         if (typeof id === "number") {
             this.#items.set(href, id);

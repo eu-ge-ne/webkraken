@@ -18,6 +18,9 @@ import { ExternalSelectAll } from "./external/select_all.js";
 import { ExternalCountAll } from "./external/count_all.js";
 import { ExternalUpsert } from "./external/upsert.js";
 import { ExternalLinkInsert } from "./external_link/insert.js";
+import { InvalidSelectAll } from "./invalid/select_all.js";
+import { InvalidCountAll } from "./invalid/count_all.js";
+import { InvalidUpsert } from "./invalid/upsert.js";
 import { InvalidLinkInsert } from "./invalid_link/insert.js";
 import { IncludeSelectAll } from "./include/select_all.js";
 import { IncludeInsert } from "./include/insert.js";
@@ -200,6 +203,21 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @lazy
     get external_link_insert() {
         return new ExternalLinkInsert(this);
+    }
+
+    @lazy
+    get invalid_select_all() {
+        return new InvalidSelectAll(this);
+    }
+
+    @lazy
+    get invalid_count_all() {
+        return new InvalidCountAll(this);
+    }
+
+    @lazy
+    get invalid_upsert() {
+        return new InvalidUpsert(this);
     }
 
     @lazy

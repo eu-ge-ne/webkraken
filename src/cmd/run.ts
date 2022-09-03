@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../log.js";
-import { Db, InternalTree, Invalid } from "../db/index.js";
+import { Db, InternalTree } from "../db/index.js";
 import { InvalidCache, ExternalCache, InternalCache } from "../cache/index.js";
 import { Queue } from "../queue.js";
 import { Request } from "../request.js";
@@ -35,12 +35,11 @@ async function action(file: string, _: unknown, command: Command) {
 
     const db = Db.open(file);
 
-    const invalid = new Invalid(db);
-    const invalid_cache = new InvalidCache(invalid);
-    const external_cache = new ExternalCache(db);
     const internal_tree = new InternalTree(db);
 
     const internal_cache = new InternalCache(internal_tree, db);
+    const external_cache = new ExternalCache(db);
+    const invalid_cache = new InvalidCache(db);
 
     const queue = new Queue();
     const request = new Request({
