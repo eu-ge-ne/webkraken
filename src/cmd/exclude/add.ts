@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../../log.js";
-import { Db, InternalTree, Internal, Exclude } from "../../db/index.js";
+import { Db, InternalTree, Internal } from "../../db/index.js";
 import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
 export const add = new FileOpenCommand("add")
@@ -36,7 +36,6 @@ async function action(file: string, _: unknown, command: Command) {
 
     const internal_tree = new InternalTree(db);
     const internal = new Internal(db);
-    const exclude = new Exclude(db);
 
     const parents = new Set<number>();
     const ids: number[] = [];
@@ -71,7 +70,7 @@ async function action(file: string, _: unknown, command: Command) {
             }
 
             for (const regexp of opts.regexp) {
-                exclude.insert(regexp.source);
+                db.exclude_insert.run(regexp.source);
             }
         });
     }

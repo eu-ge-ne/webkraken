@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import * as log from "../../log.js";
-import { Db, Exclude } from "../../db/index.js";
+import { Db } from "../../db/index.js";
 import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
 export const remove = new FileOpenCommand("remove")
@@ -26,11 +26,9 @@ async function action(file: string, _: unknown, command: Command) {
 
     const db = Db.open(file);
 
-    const exclude = new Exclude(db);
-
     db.transaction(() => {
         for (const id of opts.id) {
-            exclude.delete(id);
+            db.exclude_delete.run(id);
         }
     });
 }

@@ -16,6 +16,8 @@ import { IncludeSelectAll } from "./include/select_all.js";
 import { IncludeInsert } from "./include/insert.js";
 import { IncludeDelete } from "./include/delete.js";
 import { ExcludeSelectAll } from "./exclude/select_all.js";
+import { ExcludeInsert } from "./exclude/insert.js";
+import { ExcludeDelete } from "./exclude/delete.js";
 
 export class Db {
     #db: Database;
@@ -181,6 +183,16 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @lazy
     get exclude_select_all() {
         return new ExcludeSelectAll(this);
+    }
+
+    @lazy
+    get exclude_insert() {
+        return new ExcludeInsert(this);
+    }
+
+    @lazy
+    get exclude_delete() {
+        return new ExcludeDelete(this);
     }
 }
 
