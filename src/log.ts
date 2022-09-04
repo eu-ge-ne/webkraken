@@ -4,6 +4,7 @@ import { Console } from "node:console";
 import chalk from "chalk";
 
 type LogFn = (msg: unknown, ...params: unknown[]) => void;
+type TableFn = (tabularData: any, properties?: ReadonlyArray<string>) => void;
 
 const log = new Console({
     stdout,
@@ -13,33 +14,13 @@ const log = new Console({
     },
 });
 
-let bar_content = "";
-
-export const isTTY = stdout.isTTY;
-
-export const error: LogFn = isTTY
-    ? (msg, ...params) => bar_wrap(log.error, chalk.redBright(msg), ...params)
-    : (msg, ...params) => log.error(chalk.redBright(msg), ...params);
-
-export const warn: LogFn = isTTY
-    ? (msg, ...params) => bar_wrap(log.warn, chalk.yellowBright(msg), ...params)
-    : (msg, ...params) => log.warn(chalk.yellowBright(msg), ...params);
-
-export const info: LogFn = isTTY
-    ? (msg, ...params) => bar_wrap(log.info, msg, ...params)
-    : (msg, ...params) => log.info(msg, ...params);
-
+export let error: LogFn = (msg, ...params) => log.error(chalk.redBright(msg), ...params);
+export let warn: LogFn = (msg, ...params) => log.warn(chalk.yellowBright(msg), ...params);
+export let info: LogFn = log.info;
+export let table: TableFn = log.table;
 export let debug: LogFn = () => {};
 
-export function verbose(is_verbose: boolean) {
-    if (is_verbose) {
-        debug = isTTY
-            ? (msg, ...params) => bar_wrap(log.debug, chalk.gray(msg), ...params)
-            : (msg, ...params) => log.info(chalk.gray(msg), ...params);
-    } else {
-        debug = () => {};
-    }
-}
+let bar_content = "";
 
 export function bar(content: string) {
     bar_content = content;
@@ -49,6 +30,8 @@ export function bar(content: string) {
 export function bar_width() {
     return stdout.columns;
 }
+
+export const isTTY = stdout.isTTY;
 
 const bar_show = isTTY
     ? () => {
@@ -65,8 +48,36 @@ function bar_hide() {
     stdout.clearLine(0);
 }
 
-const bar_wrap: (fn: LogFn, msg: unknown, ...params: unknown[]) => void = (fn, msg, ...params) => {
-    bar_hide();
-    fn(msg, ...params);
-    bar_show();
-};
+function wrap_log(fn: LogFn): LogFn {
+    return (msg, ...params) => {
+        bar_hide();
+        fn(msg, ...params);
+        bar_show();
+    };
+}
+
+function wrap_table(fn: TableFn): TableFn {
+    return (tabularData, properties?) => {
+        bar_hide();
+        fn(tabularData, properties);
+        bar_show();
+    };
+}
+
+export function verbose(is_verbose: boolean) {
+    if (is_verbose) {
+        debug = (msg, ...params) => log.info(chalk.gray(msg), ...params);
+        if (isTTY) {
+            debug = wrap_log(debug);
+        }
+    } else {
+        debug = () => {};
+    }
+}
+
+if (isTTY) {
+    error = wrap_log(error);
+    warn = wrap_log(warn);
+    info = wrap_log(info);
+    table = wrap_table(table);
+}

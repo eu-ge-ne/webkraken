@@ -63,7 +63,9 @@ export class Db {
 
             log.debug("db file %s closed", opts.file_name);
 
-            this.perf?.print();
+            if (this.perf) {
+                log.table(this.perf.data());
+            }
         });
     }
 

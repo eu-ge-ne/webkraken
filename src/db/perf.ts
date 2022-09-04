@@ -3,7 +3,7 @@ import { performance, createHistogram, type RecordableHistogram } from "node:per
 export class Perf {
     readonly #map = new Map<string, RecordableHistogram>();
 
-    print() {
+    data() {
         const rows = Array.from(this.#map.entries(), ([name, hist]) => {
             return {
                 name,
@@ -19,7 +19,7 @@ export class Perf {
 
         rows.sort((a, b) => b.count * b.mean - a.count * a.mean);
 
-        console.table(rows);
+        return rows;
     }
 
     timerify<T extends (...params: unknown[]) => unknown>(key: string, fn: T): T {
