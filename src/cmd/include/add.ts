@@ -19,7 +19,7 @@ interface IncludeAddOptions extends GlobalOptions {
     regexp: RegExp[];
 }
 
-async function action(file: string, _: unknown, command: Command) {
+async function action(file_name: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<IncludeAddOptions>();
 
     log.verbose(opts.verbose);
@@ -30,7 +30,7 @@ async function action(file: string, _: unknown, command: Command) {
         log.print(regexp.source);
     }
 
-    const db = Db.open(file);
+    const db = Db.open({ file_name, perf: opts.perf });
 
     db.transaction(() => {
         for (const regexp of opts.regexp) {

@@ -8,12 +8,12 @@ export const info = new FileOpenCommand("info").description("show crawl data fil
 
 interface InfoOptions extends GlobalOptions {}
 
-async function action(file: string, _: unknown, command: Command) {
+async function action(file_name: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<InfoOptions>();
 
     log.verbose(opts.verbose);
 
-    const db = Db.open(file);
+    const db = Db.open({ file_name, perf: opts.perf });
 
     log.info("Internal", {
         total: db.internal_count_all.run(),

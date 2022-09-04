@@ -1,8 +1,8 @@
-import assert from "node:assert/strict";
-
 import Sqlite, { Database } from "better-sqlite3";
 
 import * as log from "../log.js";
+import { query } from "./query.js";
+import { Perf } from "./perf.js";
 import { InternalTreeSelectAll } from "./internal_tree/select_all.js";
 import { InternalTreeCountAll } from "./internal_tree/count_all.js";
 import { InternalTreeSelectId } from "./internal_tree/select_id.js";
@@ -40,28 +40,41 @@ import { ExcludeSelectAll } from "./exclude/select_all.js";
 import { ExcludeInsert } from "./exclude/insert.js";
 import { ExcludeDelete } from "./exclude/delete.js";
 
+interface Options {
+    readonly file_name: string;
+    readonly existing: boolean;
+    readonly perf: boolean;
+}
+
 export class Db {
-    #db: Database;
+    readonly #db: Database;
+    readonly perf?: Perf;
 
-    private constructor(file_name: string, fileMustExist: boolean) {
-        this.#db = new Sqlite(file_name, { fileMustExist });
-
+    private constructor(opts: Options) {
+        this.#db = new Sqlite(opts.file_name, { fileMustExist: opts.existing });
         this.#db.pragma("journal_mode = WAL");
+
+        if (opts.perf) {
+            this.perf = new Perf();
+        }
 
         process.on("exit", () => {
             this.#db.close();
-            log.debug("db file %s closed", file_name);
+
+            log.debug("db file %s closed", opts.file_name);
+
+            this.perf?.print();
         });
     }
 
-    static create(file_name: string) {
-        const db = new Db(file_name, false);
+    static create(opts: Omit<Options, "existing">) {
+        const db = new Db({ ...opts, existing: false });
         db.#init();
         return db;
     }
 
-    static open(file_name: string) {
-        return new Db(file_name, true);
+    static open(opts: Omit<Options, "existing">) {
+        return new Db({ ...opts, existing: true });
     }
 
     transaction(fn: () => void) {
@@ -141,200 +154,183 @@ CREATE TABLE IF NOT EXISTS "exclude" (
 `);
     }
 
-    @lazy
+    @query
     get internal_tree_select_all() {
         return new InternalTreeSelectAll(this);
     }
 
-    @lazy
+    @query
     get internal_tree_count_all() {
         return new InternalTreeCountAll(this);
     }
 
-    @lazy
+    @query
     get internal_tree_select_id() {
         return new InternalTreeSelectId(this);
     }
 
-    @lazy
+    @query
     get internal_tree_select_parent() {
         return new InternalTreeSelectParent(this);
     }
 
-    @lazy
+    @query
     get internal_tree_select_parent_chunk() {
         return new InternalTreeSelectParentChunk(this);
     }
 
-    @lazy
+    @query
     get internal_tree_scan_children() {
         return new InternalTreeScanChildren(this);
     }
 
-    @lazy
+    @query
     get internal_tree_count_children() {
         return new InternalTreeCountChildren(this);
     }
 
-    @lazy
+    @query
     get internal_tree_insert() {
         return new InternalTreeInsert(this);
     }
 
-    @lazy
+    @query
     get internal_tree_delete() {
         return new InternalTreeDelete(this);
     }
 
-    @lazy
+    @query
     get internal_count_all() {
         return new InternalCountAll(this);
     }
 
-    @lazy
+    @query
     get internal_select_id() {
         return new InternalSelectId(this);
     }
 
-    @lazy
+    @query
     get internal_select_children() {
         return new InternalSelectChildren(this);
     }
 
-    @lazy
+    @query
     get internal_count_children() {
         return new InternalCountChildren(this);
     }
 
-    @lazy
+    @query
     get internal_count_visited() {
         return new InternalCountVisited(this);
     }
 
-    @lazy
+    @query
     get internal_select_pending() {
         return new InternalSelectPending(this);
     }
 
-    @lazy
+    @query
     get internal_count_pending() {
         return new InternalCountPending(this);
     }
 
-    @lazy
+    @query
     get internal_insert() {
         return new InternalInsert(this);
     }
 
-    @lazy
+    @query
     get internal_update_visited() {
         return new InternalUpdateVisited(this);
     }
 
-    @lazy
+    @query
     get internal_delete() {
         return new InternalDelete(this);
     }
 
-    @lazy
+    @query
     get internal_link_insert() {
         return new InternalLinkInsert(this);
     }
 
-    @lazy
+    @query
     get external_select_id() {
         return new ExternalSelectId(this);
     }
 
-    @lazy
+    @query
     get external_select_all() {
         return new ExternalSelectAll(this);
     }
 
-    @lazy
+    @query
     get external_count_all() {
         return new ExternalCountAll(this);
     }
 
-    @lazy
+    @query
     get external_insert() {
         return new ExternalInsert(this);
     }
 
-    @lazy
+    @query
     get external_link_insert() {
         return new ExternalLinkInsert(this);
     }
 
-    @lazy
+    @query
     get invalid_select_id() {
         return new InvalidSelectId(this);
     }
 
-    @lazy
+    @query
     get invalid_select_all() {
         return new InvalidSelectAll(this);
     }
 
-    @lazy
+    @query
     get invalid_count_all() {
         return new InvalidCountAll(this);
     }
 
-    @lazy
+    @query
     get invalid_insert() {
         return new InvalidInsert(this);
     }
 
-    @lazy
+    @query
     get invalid_link_insert() {
         return new InvalidLinkInsert(this);
     }
 
-    @lazy
+    @query
     get include_select_all() {
         return new IncludeSelectAll(this);
     }
 
-    @lazy
+    @query
     get include_insert() {
         return new IncludeInsert(this);
     }
 
-    @lazy
+    @query
     get include_delete() {
         return new IncludeDelete(this);
     }
 
-    @lazy
+    @query
     get exclude_select_all() {
         return new ExcludeSelectAll(this);
     }
 
-    @lazy
+    @query
     get exclude_insert() {
         return new ExcludeInsert(this);
     }
 
-    @lazy
+    @query
     get exclude_delete() {
         return new ExcludeDelete(this);
     }
-}
-
-function lazy(target: any, key: string, desc: PropertyDescriptor) {
-    let cached = false;
-    let value: unknown;
-
-    assert(desc.get);
-    const get = desc.get;
-
-    desc.get = function () {
-        if (!cached) {
-            value = get.call(this);
-            cached = true;
-            log.debug("%s - lazy get", key);
-        }
-        return value;
-    };
 }

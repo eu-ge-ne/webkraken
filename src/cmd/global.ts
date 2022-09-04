@@ -5,10 +5,12 @@ import { Command } from "commander";
 export const program = new Command("webkraken")
     .description("web crawler")
     .version("0.0.15", "-v --version")
-    .option("--verbose", "verbose output");
+    .option("--verbose", "verbose output")
+    .option("--perf", "collect perf data");
 
 export interface GlobalOptions {
     verbose: boolean;
+    perf: boolean;
 }
 
 export class FileCreateCommand extends Command {

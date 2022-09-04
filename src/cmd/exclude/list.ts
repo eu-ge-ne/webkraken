@@ -8,12 +8,12 @@ export const list = new FileOpenCommand("list").description("list exclude patter
 
 interface ExcludeListOptions extends GlobalOptions {}
 
-async function action(file: string, _: unknown, command: Command) {
+async function action(file_name: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<ExcludeListOptions>();
 
     log.verbose(opts.verbose);
 
-    const db = Db.open(file);
+    const db = Db.open({ file_name, perf: opts.perf });
 
     for (const { id, regexp } of db.exclude_select_all.run()) {
         log.print("%i\t%s", id, regexp);

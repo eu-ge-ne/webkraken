@@ -19,12 +19,12 @@ interface IncludeRemoveOptions extends GlobalOptions {
     id: number[];
 }
 
-async function action(file: string, _: unknown, command: Command) {
+async function action(file_name: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<IncludeRemoveOptions>();
 
     log.verbose(opts.verbose);
 
-    const db = Db.open(file);
+    const db = Db.open({ file_name, perf: opts.perf });
 
     db.transaction(() => {
         for (const id of opts.id) {

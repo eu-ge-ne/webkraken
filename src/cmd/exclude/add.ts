@@ -21,7 +21,7 @@ interface ExcludeAddOptions extends GlobalOptions {
     dryRun?: boolean;
 }
 
-async function action(file: string, _: unknown, command: Command) {
+async function action(file_name: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<ExcludeAddOptions>();
 
     log.verbose(opts.verbose);
@@ -32,7 +32,7 @@ async function action(file: string, _: unknown, command: Command) {
         log.print(regexp.source);
     }
 
-    const db = Db.open(file);
+    const db = Db.open({ file_name, perf: opts.perf });
 
     const parents = new Set<number>();
     const ids: number[] = [];

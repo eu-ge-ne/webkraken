@@ -23,7 +23,7 @@ interface InitOptions extends GlobalOptions {
     include: RegExp[];
 }
 
-async function action(file: string, _: unknown, command: Command) {
+async function action(file_name: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<InitOptions>();
 
     log.verbose(opts.verbose);
@@ -35,7 +35,7 @@ async function action(file: string, _: unknown, command: Command) {
         }
     }
 
-    log.print("Initializing %s", file);
+    log.print("Initializing %s", file_name);
 
     log.print("\nStart urls:");
 
@@ -49,7 +49,7 @@ async function action(file: string, _: unknown, command: Command) {
         log.print(regexp.source);
     }
 
-    const db = Db.create(file);
+    const db = Db.create({ file_name, perf: opts.perf });
 
     db.transaction(() => {
         for (const regexp of opts.include) {

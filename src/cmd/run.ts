@@ -25,14 +25,14 @@ interface RunOptions extends GlobalOptions {
     progress: number;
 }
 
-async function action(file: string, _: unknown, command: Command) {
+async function action(file_name: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<RunOptions>();
 
     const progress_interval = opts.progress * 1_000;
 
     log.verbose(opts.verbose);
 
-    const db = Db.open(file);
+    const db = Db.open({ file_name, perf: opts.perf });
 
     const queue = new Queue();
     const request = new Request({

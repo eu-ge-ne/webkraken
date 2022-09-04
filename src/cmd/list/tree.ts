@@ -24,12 +24,12 @@ interface ListTreeOptions extends GlobalOptions {
     depth: number;
 }
 
-async function action(file: string, _: unknown, command: Command) {
+async function action(file_name: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<ListTreeOptions>();
 
     log.verbose(opts.verbose);
 
-    const db = Db.open(file);
+    const db = Db.open({ file_name, perf: opts.perf });
 
     for (const { parent, chunks } of db.internal_tree_scan_children.run(opts.depth)) {
         let children_count = db.internal_tree_count_children.run(parent);

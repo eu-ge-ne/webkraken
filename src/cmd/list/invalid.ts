@@ -8,12 +8,12 @@ export const invalid = new FileOpenCommand("invalid").description("list invalid 
 
 interface ListInvalidOptions extends GlobalOptions {}
 
-async function action(file: string, _: unknown, command: Command) {
+async function action(file_name: string, _: unknown, command: Command) {
     const opts = command.optsWithGlobals<ListInvalidOptions>();
 
     log.verbose(opts.verbose);
 
-    const db = Db.open(file);
+    const db = Db.open({ file_name, perf: opts.perf });
 
     let n = 0;
 
