@@ -24,10 +24,10 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     log.verbose(opts.verbose);
 
-    log.print("Including patterns:");
+    log.info("Including patterns:");
 
     for (const regexp of opts.regexp) {
-        log.print(regexp.source);
+        log.info(regexp.source);
     }
 
     const db = Db.open({ file_name, perf: opts.perf });

@@ -38,9 +38,9 @@ async function action(file_name: string, _: unknown, command: Command) {
         n += hrefs.length;
 
         for (const href of hrefs) {
-            log.print(href);
+            log.info(href);
         }
     }
 
-    log.print("Found %i internal urls", n);
+    log.info("Found %i internal urls", n);
 }

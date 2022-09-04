@@ -26,10 +26,10 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     log.verbose(opts.verbose);
 
-    log.print("Excluding patterns:");
+    log.info("Excluding patterns:");
 
     for (const regexp of opts.regexp) {
-        log.print(regexp.source);
+        log.info(regexp.source);
     }
 
     const db = Db.open({ file_name, perf: opts.perf });
@@ -41,7 +41,7 @@ async function action(file_name: string, _: unknown, command: Command) {
         for (const { id, qs } of db.internal_select_children.run(parent)) {
             const href = chunks.concat(qs).join("");
             if (opts.regexp.some((x) => x.test(href))) {
-                log.print(href);
+                log.info(href);
                 parents.add(parent);
                 ids.push(id);
             }
@@ -49,7 +49,7 @@ async function action(file_name: string, _: unknown, command: Command) {
     }
 
     if (!opts.dryRun) {
-        log.print("Removing %i excluded internal urls", ids.length);
+        log.info("Removing %i excluded internal urls", ids.length);
 
         db.transaction(() => {
             db.internal_delete.run(ids);

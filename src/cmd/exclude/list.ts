@@ -16,6 +16,6 @@ async function action(file_name: string, _: unknown, command: Command) {
     const db = Db.open({ file_name, perf: opts.perf });
 
     for (const { id, regexp } of db.exclude_select_all.run()) {
-        log.print("%i\t%s", id, regexp);
+        log.info("%i\t%s", id, regexp);
     }
 }

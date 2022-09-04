@@ -19,8 +19,8 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     for (const { href } of db.external_select_all.run()) {
         n += 1;
-        log.print(href);
+        log.info(href);
     }
 
-    log.print("Found %i external urls", n);
+    log.info("Found %i external urls", n);
 }

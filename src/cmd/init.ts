@@ -35,18 +35,18 @@ async function action(file_name: string, _: unknown, command: Command) {
         }
     }
 
-    log.print("Initializing %s", file_name);
+    log.info("Initializing %s", file_name);
 
-    log.print("\nStart urls:");
+    log.info("\nStart urls:");
 
     for (const url of opts.url) {
-        log.print(url.href);
+        log.info(url.href);
     }
 
-    log.print("\nInclude patterns:");
+    log.info("\nInclude patterns:");
 
     for (const regexp of opts.include) {
-        log.print(regexp.source);
+        log.info(regexp.source);
     }
 
     const db = Db.create({ file_name, perf: opts.perf });

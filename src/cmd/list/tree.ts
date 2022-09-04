@@ -35,7 +35,7 @@ async function action(file_name: string, _: unknown, command: Command) {
         let children_count = db.internal_tree_count_children.run(parent);
         let url_count = db.internal_count_children.run(parent);
 
-        log.print(
+        log.info(
             "%s%s\t\t\t\t%i children, %i urls",
             "\t".repeat(chunks.length - 1),
             chunks[chunks.length - 1],

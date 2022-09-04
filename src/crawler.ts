@@ -1,3 +1,5 @@
+import chalk from "chalk";
+
 import * as log from "./log.js";
 import type { Db } from "./db/db.js";
 import type { Queue } from "./queue.js";
@@ -63,7 +65,7 @@ export class Crawler {
 
     async visit(visit_id: number, visit_href: string) {
         try {
-            log.debug(visit_href);
+            log.debug("Requesting %s", visit_href);
 
             let res: RequestResult;
 
@@ -80,7 +82,7 @@ export class Crawler {
             let urls: ParsedUrls | undefined;
 
             if (code >= 200 && code <= 299) {
-                log.info("%d %s", code, visit_href);
+                log.info("%d %s", code, chalk.dim(visit_href));
 
                 const hrefs = parse_html(res.body).hrefs;
                 urls = parse_urls(hrefs, visit_href);
@@ -94,7 +96,7 @@ export class Crawler {
 
             if (urls) {
                 for (const href of urls.invalid) {
-                    log.warn("Invalid url", { visit_href, href });
+                    log.warn("Invalid url %s", href);
                 }
             }
 
@@ -133,7 +135,7 @@ export class Crawler {
     async #wait() {
         const delay = this.#last_req + this.#rps_interval - Date.now();
         if (delay > 0) {
-            //log.debug("Waiting", delay, "ms");
+            log.debug("Waiting %d ms", delay);
             await wait(delay);
         }
     }
