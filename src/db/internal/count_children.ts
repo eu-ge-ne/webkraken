@@ -1,19 +1,11 @@
-import type { Statement } from "better-sqlite3";
-
 import type { Db } from "../db.js";
 
-export class InternalCountChildren {
-    readonly #st: Statement<{ parent: number }>;
-
-    constructor(db: Db) {
-        this.#st = db.prepare(`
+export function internal_count_children(db: Db): (parent: number) => number {
+    const st = db.prepare<{ parent: number }>(`
 SELECT COUNT(*) AS "count"
 FROM "internal"
 WHERE "parent" = :parent;
 `);
-    }
 
-    run(parent: number): number {
-        return this.#st.get({ parent }).count;
-    }
+    return (parent) => st.get({ parent }).count;
 }

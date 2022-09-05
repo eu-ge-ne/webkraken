@@ -28,7 +28,7 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     db.transaction(() => {
         for (const id of opts.id) {
-            db.include_delete.run(id);
+            db.include_delete(id);
         }
     });
 }

@@ -1,19 +1,11 @@
-import type { Statement } from "better-sqlite3";
-
 import type { Db } from "../db.js";
 
-export class InternalTreeSelectParent {
-    readonly #st: Statement<{ id: number }>;
-
-    constructor(db: Db) {
-        this.#st = db.prepare(`
+export function internal_tree_select_parent(db: Db): (id: number) => number {
+    const st = db.prepare<{ id: number }>(`
 SELECT "parent"
 FROM "internal_tree"
 WHERE "id" = :id;
 `);
-    }
 
-    run(id: number): number {
-        return this.#st.get({ id }).parent;
-    }
+    return (id) => st.get({ id }).parent;
 }

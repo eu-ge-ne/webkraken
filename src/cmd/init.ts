@@ -53,7 +53,7 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     db.transaction(() => {
         for (const regexp of opts.include) {
-            db.include_insert.run(regexp.source);
+            db.include_insert(regexp.source);
         }
 
         for (const url of opts.url) {

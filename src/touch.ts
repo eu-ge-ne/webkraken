@@ -9,37 +9,34 @@ export function touch_internal(db: Db, url: URL): number {
     let parent = 0;
 
     for (const chunk of chunks) {
-        let id = db.internal_tree_select_id.run(parent, chunk);
+        let id = db.internal_tree_select_id(parent, chunk);
         if (typeof id === "undefined") {
-            id = db.internal_tree_insert.run(parent, chunk);
+            id = db.internal_tree_insert(parent, chunk);
         }
         parent = id;
     }
 
     assert(parent !== 0);
 
-    let id = db.internal_select_id.run(parent, qs);
+    let id = db.internal_select_id(parent, qs);
     if (typeof id === "undefined") {
-        id = db.internal_insert.run(parent, qs);
+        id = db.internal_insert(parent, qs);
     }
-
     return id;
 }
 
 export function touch_external(db: Db, url: URL): number {
-    let id = db.external_select_id.run(url.href);
+    let id = db.external_select_id(url.href);
     if (typeof id === "undefined") {
-        id = db.external_insert.run(url.href);
+        id = db.external_insert(url.href);
     }
-
     return id;
 }
 
 export function touch_invalid(db: Db, href: string): number {
-    let id = db.invalid_select_id.run(href);
+    let id = db.invalid_select_id(href);
     if (typeof id === "undefined") {
-        id = db.invalid_insert.run(href);
+        id = db.invalid_insert(href);
     }
-
     return id;
 }

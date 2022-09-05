@@ -1,12 +1,7 @@
-import type { Statement } from "better-sqlite3";
-
 import type { Db } from "../db.js";
 
-export class InternalSelectId {
-    readonly #st: Statement<{ parent: number; qs: string }>;
-
-    constructor(db: Db) {
-        this.#st = db.prepare(`
+export function internal_select_id(db: Db): (parent: number, qs: string) => number | undefined {
+    const st = db.prepare<{ parent: number; qs: string }>(`
 SELECT "id"
 FROM "internal"
 WHERE
@@ -14,9 +9,6 @@ WHERE
     AND qs = :qs
 LIMIT 1;
 `);
-    }
 
-    run(parent: number, qs: string): number | undefined {
-        return this.#st.get({ parent, qs })?.id;
-    }
+    return (parent, qs) => st.get({ parent, qs })?.id;
 }

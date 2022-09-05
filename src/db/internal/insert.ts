@@ -1,19 +1,11 @@
-import type { Statement } from "better-sqlite3";
-
 import type { Db } from "../db.js";
 
-export class InternalInsert {
-    readonly #st: Statement<{ parent: number; qs: string }>;
-
-    constructor(db: Db) {
-        this.#st = db.prepare(`
+export function internal_insert(db: Db): (parent: number, qs: string) => number {
+    const st = db.prepare<{ parent: number; qs: string }>(`
 INSERT INTO "internal" ("parent", "qs")
 VALUES (:parent, :qs)
 RETURNING "id";
 `);
-    }
 
-    run(parent: number, qs: string): number {
-        return this.#st.get({ parent, qs }).id;
-    }
+    return (parent, qs) => st.get({ parent, qs }).id;
 }

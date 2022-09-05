@@ -1,18 +1,10 @@
-import type { Statement } from "better-sqlite3";
-
 import type { Db } from "../db.js";
 
-export class IncludeDelete {
-    readonly #st: Statement<{ id: number }>;
-
-    constructor(db: Db) {
-        this.#st = db.prepare(`
+export function include_delete(db: Db): (id: number) => void {
+    const st = db.prepare<{ id: number }>(`
 DELETE FROM "include"
 WHERE "id"= :id;
 `);
-    }
 
-    run(id: number) {
-        this.#st.run({ id });
-    }
+    return (id) => st.run({ id });
 }

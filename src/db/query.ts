@@ -5,7 +5,7 @@ import type { Db } from "./db.js";
 
 export function query(target: any, key: string, desc: PropertyDescriptor) {
     let cached = false;
-    let value: { run: (...params: unknown[]) => unknown };
+    let fn: (...params: unknown[]) => unknown;
 
     assert(typeof desc.get === "function");
 
@@ -15,17 +15,17 @@ export function query(target: any, key: string, desc: PropertyDescriptor) {
         if (!cached) {
             const db = this as Db;
 
-            value = get.call(db);
+            fn = get.call(db);
 
             if (db.perf) {
-                value.run = db.perf.timerify(key, value.run);
+                fn = db.perf.timerify(key, fn);
             }
 
-            log.debug("db_statement [%s] cached", key);
+            log.debug("query %s cached", key);
 
             cached = true;
         }
 
-        return value;
+        return fn;
     };
 }

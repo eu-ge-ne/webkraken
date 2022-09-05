@@ -30,8 +30,8 @@ export class Crawler {
         private readonly opts: Options
     ) {
         this.#rps_interval = 1_000 / this.opts.rps;
-        this.#include_patterns = this.db.include_select_all.run().map((x) => new RegExp(x.regexp));
-        this.#exclude_patterns = this.db.exclude_select_all.run().map((x) => new RegExp(x.regexp));
+        this.#include_patterns = this.db.include_select_all().map((x) => new RegExp(x.regexp));
+        this.#exclude_patterns = this.db.exclude_select_all().map((x) => new RegExp(x.regexp));
     }
 
     get rps() {
@@ -116,7 +116,7 @@ export class Crawler {
         let item = this.queue.pop();
 
         if (!item) {
-            const pending = this.db.internal_select_pending.run(this.opts.batch_size);
+            const pending = this.db.internal_select_pending(this.opts.batch_size);
             const items = pending.map(({ id, parent, qs }) => ({
                 id,
                 href: this.#build_href(parent, qs),
@@ -144,7 +144,7 @@ export class Crawler {
         let chunks: string[] = [qs];
 
         while (parent !== 0) {
-            const item = this.db.internal_tree_select_parent_chunk.run(parent);
+            const item = this.db.internal_tree_select_parent_chunk(parent);
             chunks.unshift(item.chunk);
             parent = item.parent;
         }
@@ -154,7 +154,7 @@ export class Crawler {
 
     #visited(visit_id: number, res: RequestResult, urls?: ParsedUrls) {
         this.db.transaction(() => {
-            this.db.internal_update_visited.run(visit_id, res.status_code, res.time_total);
+            this.db.internal_update_visited(visit_id, res.status_code, res.time_total);
 
             if (urls) {
                 for (const url of urls.valid) {
@@ -165,17 +165,17 @@ export class Crawler {
                             log.debug("Excluded %s", url.href);
                         } else {
                             const to_id = touch_internal(this.db, url);
-                            this.db.internal_link_insert.run(visit_id, to_id);
+                            this.db.internal_link_insert(visit_id, to_id);
                         }
                     } else {
                         const to_id = touch_external(this.db, url);
-                        this.db.external_link_insert.run(visit_id, to_id);
+                        this.db.external_link_insert(visit_id, to_id);
                     }
                 }
 
                 for (const href of urls.invalid) {
                     const to_id = touch_invalid(this.db, href);
-                    this.db.invalid_link_insert.run(visit_id, to_id);
+                    this.db.invalid_link_insert(visit_id, to_id);
                 }
             }
         });

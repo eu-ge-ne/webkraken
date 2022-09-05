@@ -1,19 +1,11 @@
-import type { Statement } from "better-sqlite3";
-
 import type { Db } from "../db.js";
 
-export class InvalidInsert {
-    readonly #st: Statement<{ href: string }>;
-
-    constructor(db: Db) {
-        this.#st = db.prepare(`
+export function invalid_insert(db: Db): (href: string) => number {
+    const st = db.prepare<{ href: string }>(`
 INSERT INTO "invalid" ("href")
 VALUES (:href)
 RETURNING "id";
 `);
-    }
 
-    run(href: string): number {
-        return this.#st.get({ href }).id;
-    }
+    return (href) => st.get({ href }).id;
 }

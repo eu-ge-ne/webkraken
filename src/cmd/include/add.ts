@@ -34,7 +34,7 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     db.transaction(() => {
         for (const regexp of opts.regexp) {
-            db.include_insert.run(regexp.source);
+            db.include_insert(regexp.source);
         }
     });
 }

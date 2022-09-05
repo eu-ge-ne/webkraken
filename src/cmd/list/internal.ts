@@ -28,8 +28,8 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     let n = 0;
 
-    for (const { parent, chunks } of db.internal_tree_scan_children.run()) {
-        let hrefs = db.internal_select_children.run(parent).map((x) => chunks.concat(x.qs).join(""));
+    for (const { parent, chunks } of db.internal_tree_scan_children()) {
+        let hrefs = db.internal_select_children(parent).map((x) => chunks.concat(x.qs).join(""));
 
         if (opts.filter) {
             hrefs = hrefs.filter((href) => opts.filter!.some((x) => x.test(href)));

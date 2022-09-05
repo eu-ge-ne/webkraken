@@ -1,20 +1,12 @@
-import type { Statement } from "better-sqlite3";
-
 import type { Db } from "../db.js";
 
-export class ExternalSelectId {
-    readonly #st: Statement<{ href: string }>;
-
-    constructor(db: Db) {
-        this.#st = db.prepare(`
+export function external_select_id(db: Db): (href: string) => number | undefined {
+    const st = db.prepare<{ href: string }>(`
 SELECT "id"
 FROM "external"
 WHERE href = :href
 LIMIT 1;
 `);
-    }
 
-    run(href: string): number | undefined {
-        return this.#st.get({ href })?.id;
-    }
+    return (href) => st.get({ href })?.id;
 }

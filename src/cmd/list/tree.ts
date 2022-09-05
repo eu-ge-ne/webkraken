@@ -31,9 +31,9 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     const db = Db.open({ file_name, perf: opts.perf });
 
-    for (const { parent, chunks } of db.internal_tree_scan_children.run(opts.depth)) {
-        let children_count = db.internal_tree_count_children.run(parent);
-        let url_count = db.internal_count_children.run(parent);
+    for (const { parent, chunks } of db.internal_tree_scan_children(opts.depth)) {
+        let children_count = db.internal_tree_count_children(parent);
+        let url_count = db.internal_count_children(parent);
 
         log.info(
             "%s%s\t\t\t\t%i children, %i urls",

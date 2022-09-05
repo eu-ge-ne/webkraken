@@ -3,42 +3,41 @@ import Sqlite, { Database } from "better-sqlite3";
 import * as log from "../log.js";
 import { query } from "./query.js";
 import { Perf } from "./perf.js";
-import { InternalTreeSelectAll } from "./internal_tree/select_all.js";
-import { InternalTreeCountAll } from "./internal_tree/count_all.js";
-import { InternalTreeSelectId } from "./internal_tree/select_id.js";
-import { InternalTreeSelectParent } from "./internal_tree/select_parent.js";
-import { InternalTreeSelectParentChunk } from "./internal_tree/select_parent_chunk.js";
-import { InternalTreeScanChildren } from "./internal_tree/scan_children.js";
-import { InternalTreeCountChildren } from "./internal_tree/count_children.js";
-import { InternalTreeInsert } from "./internal_tree/insert.js";
-import { InternalTreeDelete } from "./internal_tree/delete.js";
-import { InternalCountAll } from "./internal/count_all.js";
-import { InternalSelectId } from "./internal/select_id.js";
-import { InternalSelectChildren } from "./internal/select_children.js";
-import { InternalCountChildren } from "./internal/count_children.js";
-import { InternalCountVisited } from "./internal/count_visited.js";
-import { InternalSelectPending } from "./internal/select_pending.js";
-import { InternalCountPending } from "./internal/count_pending.js";
-import { InternalInsert } from "./internal/insert.js";
-import { InternalUpdateVisited } from "./internal/update_visited.js";
-import { InternalDelete } from "./internal/delete.js";
-import { InternalLinkInsert } from "./internal_link/insert.js";
-import { ExternalSelectId } from "./external/select_id.js";
-import { ExternalSelectAll } from "./external/select_all.js";
-import { ExternalCountAll } from "./external/count_all.js";
-import { ExternalInsert } from "./external/insert.js";
-import { ExternalLinkInsert } from "./external_link/insert.js";
-import { InvalidSelectId } from "./invalid/select_id.js";
-import { InvalidSelectAll } from "./invalid/select_all.js";
-import { InvalidCountAll } from "./invalid/count_all.js";
-import { InvalidInsert } from "./invalid/insert.js";
-import { InvalidLinkInsert } from "./invalid_link/insert.js";
-import { IncludeSelectAll } from "./include/select_all.js";
-import { IncludeInsert } from "./include/insert.js";
-import { IncludeDelete } from "./include/delete.js";
-import { ExcludeSelectAll } from "./exclude/select_all.js";
-import { ExcludeInsert } from "./exclude/insert.js";
-import { ExcludeDelete } from "./exclude/delete.js";
+import { internal_tree_count_all } from "./internal_tree/count_all.js";
+import { internal_tree_select_id } from "./internal_tree/select_id.js";
+import { internal_tree_select_parent } from "./internal_tree/select_parent.js";
+import { internal_tree_select_parent_chunk } from "./internal_tree/select_parent_chunk.js";
+import { internal_tree_scan_children } from "./internal_tree/scan_children.js";
+import { internal_tree_count_children } from "./internal_tree/count_children.js";
+import { internal_tree_insert } from "./internal_tree/insert.js";
+import { internal_tree_delete } from "./internal_tree/delete.js";
+import { internal_count_all } from "./internal/count_all.js";
+import { internal_select_id } from "./internal/select_id.js";
+import { internal_select_children } from "./internal/select_children.js";
+import { internal_count_children } from "./internal/count_children.js";
+import { internal_count_visited } from "./internal/count_visited.js";
+import { internal_select_pending } from "./internal/select_pending.js";
+import { internal_count_pending } from "./internal/count_pending.js";
+import { internal_insert } from "./internal/insert.js";
+import { internal_update_visited } from "./internal/update_visited.js";
+import { internal_delete } from "./internal/delete.js";
+import { internal_link_insert } from "./internal_link/insert.js";
+import { external_select_id } from "./external/select_id.js";
+import { external_select_all } from "./external/select_all.js";
+import { external_count_all } from "./external/count_all.js";
+import { external_insert } from "./external/insert.js";
+import { external_link_insert } from "./external_link/insert.js";
+import { invalid_select_id } from "./invalid/select_id.js";
+import { invalid_select_all } from "./invalid/select_all.js";
+import { invalid_count_all } from "./invalid/count_all.js";
+import { invalid_insert } from "./invalid/insert.js";
+import { invalid_link_insert } from "./invalid_link/insert.js";
+import { include_select_all } from "./include/select_all.js";
+import { include_insert } from "./include/insert.js";
+import { include_delete } from "./include/delete.js";
+import { exclude_select_all } from "./exclude/select_all.js";
+import { exclude_insert } from "./exclude/insert.js";
+import { exclude_delete } from "./exclude/delete.js";
 
 interface Options {
     readonly file_name: string;
@@ -157,182 +156,177 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @query
-    get internal_tree_select_all() {
-        return new InternalTreeSelectAll(this);
-    }
-
-    @query
     get internal_tree_count_all() {
-        return new InternalTreeCountAll(this);
+        return internal_tree_count_all(this);
     }
 
     @query
     get internal_tree_select_id() {
-        return new InternalTreeSelectId(this);
+        return internal_tree_select_id(this);
     }
 
     @query
     get internal_tree_select_parent() {
-        return new InternalTreeSelectParent(this);
+        return internal_tree_select_parent(this);
     }
 
     @query
     get internal_tree_select_parent_chunk() {
-        return new InternalTreeSelectParentChunk(this);
+        return internal_tree_select_parent_chunk(this);
     }
 
     @query
     get internal_tree_scan_children() {
-        return new InternalTreeScanChildren(this);
+        return internal_tree_scan_children(this);
     }
 
     @query
     get internal_tree_count_children() {
-        return new InternalTreeCountChildren(this);
+        return internal_tree_count_children(this);
     }
 
     @query
     get internal_tree_insert() {
-        return new InternalTreeInsert(this);
+        return internal_tree_insert(this);
     }
 
     @query
     get internal_tree_delete() {
-        return new InternalTreeDelete(this);
+        return internal_tree_delete(this);
     }
 
     @query
     get internal_count_all() {
-        return new InternalCountAll(this);
+        return internal_count_all(this);
     }
 
     @query
     get internal_select_id() {
-        return new InternalSelectId(this);
+        return internal_select_id(this);
     }
 
     @query
     get internal_select_children() {
-        return new InternalSelectChildren(this);
+        return internal_select_children(this);
     }
 
     @query
     get internal_count_children() {
-        return new InternalCountChildren(this);
+        return internal_count_children(this);
     }
 
     @query
     get internal_count_visited() {
-        return new InternalCountVisited(this);
+        return internal_count_visited(this);
     }
 
     @query
     get internal_select_pending() {
-        return new InternalSelectPending(this);
+        return internal_select_pending(this);
     }
 
     @query
     get internal_count_pending() {
-        return new InternalCountPending(this);
+        return internal_count_pending(this);
     }
 
     @query
     get internal_insert() {
-        return new InternalInsert(this);
+        return internal_insert(this);
     }
 
     @query
     get internal_update_visited() {
-        return new InternalUpdateVisited(this);
+        return internal_update_visited(this);
     }
 
     @query
     get internal_delete() {
-        return new InternalDelete(this);
+        return internal_delete(this);
     }
 
     @query
     get internal_link_insert() {
-        return new InternalLinkInsert(this);
+        return internal_link_insert(this);
     }
 
     @query
     get external_select_id() {
-        return new ExternalSelectId(this);
+        return external_select_id(this);
     }
 
     @query
     get external_select_all() {
-        return new ExternalSelectAll(this);
+        return external_select_all(this);
     }
 
     @query
     get external_count_all() {
-        return new ExternalCountAll(this);
+        return external_count_all(this);
     }
 
     @query
     get external_insert() {
-        return new ExternalInsert(this);
+        return external_insert(this);
     }
 
     @query
     get external_link_insert() {
-        return new ExternalLinkInsert(this);
+        return external_link_insert(this);
     }
 
     @query
     get invalid_select_id() {
-        return new InvalidSelectId(this);
+        return invalid_select_id(this);
     }
 
     @query
     get invalid_select_all() {
-        return new InvalidSelectAll(this);
+        return invalid_select_all(this);
     }
 
     @query
     get invalid_count_all() {
-        return new InvalidCountAll(this);
+        return invalid_count_all(this);
     }
 
     @query
     get invalid_insert() {
-        return new InvalidInsert(this);
+        return invalid_insert(this);
     }
 
     @query
     get invalid_link_insert() {
-        return new InvalidLinkInsert(this);
+        return invalid_link_insert(this);
     }
 
     @query
     get include_select_all() {
-        return new IncludeSelectAll(this);
+        return include_select_all(this);
     }
 
     @query
     get include_insert() {
-        return new IncludeInsert(this);
+        return include_insert(this);
     }
 
     @query
     get include_delete() {
-        return new IncludeDelete(this);
+        return include_delete(this);
     }
 
     @query
     get exclude_select_all() {
-        return new ExcludeSelectAll(this);
+        return exclude_select_all(this);
     }
 
     @query
     get exclude_insert() {
-        return new ExcludeInsert(this);
+        return exclude_insert(this);
     }
 
     @query
     get exclude_delete() {
-        return new ExcludeDelete(this);
+        return exclude_delete(this);
     }
 }

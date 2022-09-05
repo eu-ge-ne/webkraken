@@ -1,9 +1,5 @@
 import type { Db } from "../db.js";
 
-export class InternalDelete {
-    constructor(private readonly db: Db) {}
-
-    run(ids: number[]) {
-        this.db.exec(`DELETE FROM "internal" WHERE "id" IN (${ids.join(",")})`);
-    }
+export function internal_delete(db: Db): (ids: number[]) => void {
+    return (ids) => db.exec(`DELETE FROM "internal" WHERE "id" IN (${ids.join(",")})`);
 }

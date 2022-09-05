@@ -1,19 +1,11 @@
-import type { Statement } from "better-sqlite3";
-
 import type { Db } from "../db.js";
 
-export class InternalTreeInsert {
-    readonly #st: Statement<{ parent: number; chunk: string }>;
-
-    constructor(db: Db) {
-        this.#st = db.prepare(`
+export function internal_tree_insert(db: Db): (parent: number, chunk: string) => number {
+    const st = db.prepare<{ parent: number; chunk: string }>(`
 INSERT INTO "internal_tree" ("parent", "chunk")
 VALUES (:parent, :chunk)
 RETURNING "id";
 `);
-    }
 
-    run(parent: number, chunk: string): number {
-        return this.#st.get({ parent, chunk }).id;
-    }
+    return (parent, chunk) => st.get({ parent, chunk }).id;
 }

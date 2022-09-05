@@ -17,7 +17,7 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     let n = 0;
 
-    for (const { href } of db.external_select_all.run()) {
+    for (const { href } of db.external_select_all()) {
         n += 1;
         log.info(href);
     }

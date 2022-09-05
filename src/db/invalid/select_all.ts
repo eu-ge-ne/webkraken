@@ -1,20 +1,12 @@
-import type { Statement } from "better-sqlite3";
-
 import type { Db } from "../db.js";
 
-export class InvalidSelectAll {
-    readonly #st: Statement;
-
-    constructor(db: Db) {
-        this.#st = db.prepare(`
+export function invalid_select_all(db: Db): () => { id: number; href: string }[] {
+    const st = db.prepare(`
 SELECT
     "id",
     "href"
 FROM "invalid";
 `);
-    }
 
-    run(): { id: number; href: string }[] {
-        return this.#st.all();
-    }
+    return () => st.all();
 }
