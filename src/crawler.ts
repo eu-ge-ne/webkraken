@@ -22,6 +22,8 @@ export class Crawler {
     readonly #exclude_patterns: RegExp[];
     #last_req = 0;
     #error_count = 0;
+    #count_pending = 0;
+    #count_visited = 0;
 
     constructor(
         private readonly db: Db,
@@ -32,6 +34,9 @@ export class Crawler {
         this.#rps_interval = 1_000 / this.opts.rps;
         this.#include_patterns = this.db.include_select_all().map((x) => new RegExp(x.regexp));
         this.#exclude_patterns = this.db.exclude_select_all().map((x) => new RegExp(x.regexp));
+
+        this.#count_pending = this.db.internal_count_pending();
+        this.#count_visited = this.db.internal_count_visited();
     }
 
     get rps() {
@@ -40,6 +45,18 @@ export class Crawler {
 
     get error_count() {
         return this.#error_count;
+    }
+
+    get count_pending() {
+        return this.#count_pending;
+    }
+
+    get count_visited() {
+        return this.#count_visited;
+    }
+
+    get count_total() {
+        return this.#count_pending + this.#count_visited;
     }
 
     async run() {
@@ -156,6 +173,8 @@ export class Crawler {
         this.db.transaction(() => {
             this.db.internal_update_visited(visit_id, res.status_code, res.time_total);
 
+            this.#count_visited += 1;
+
             if (urls) {
                 for (const url of urls.valid) {
                     const is_internal = this.#include_patterns.some((x) => x.test(url.href));
@@ -164,8 +183,10 @@ export class Crawler {
                         if (is_excluded) {
                             log.debug("Excluded %s", url.href);
                         } else {
-                            const to_id = touch_internal(this.db, url);
-                            this.db.internal_link_insert(visit_id, to_id);
+                            const result = touch_internal(this.db, url);
+                            this.db.internal_link_insert(visit_id, result.id);
+
+                            this.#count_pending += result.n;
                         }
                     } else {
                         const to_id = touch_external(this.db, url);

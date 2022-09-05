@@ -3,7 +3,6 @@ import Sqlite, { Database } from "better-sqlite3";
 import * as log from "../log.js";
 import { query } from "./query.js";
 import { Perf } from "./perf.js";
-import { internal_tree_count_all } from "./internal_tree/count_all.js";
 import { internal_tree_select_id } from "./internal_tree/select_id.js";
 import { internal_tree_select_parent } from "./internal_tree/select_parent.js";
 import { internal_tree_select_parent_chunk } from "./internal_tree/select_parent_chunk.js";
@@ -153,11 +152,6 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     "regexp" TEXT NOT NULL UNIQUE
 );
 `);
-    }
-
-    @query
-    get internal_tree_count_all() {
-        return internal_tree_count_all(this);
     }
 
     @query

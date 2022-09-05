@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import type { Db } from "./db/db.js";
 import { split_url } from "./url.js";
 
-export function touch_internal(db: Db, url: URL): number {
+export function touch_internal(db: Db, url: URL): { id: number; n: number } {
     const { chunks, qs } = split_url(url);
 
     let parent = 0;
@@ -18,11 +18,15 @@ export function touch_internal(db: Db, url: URL): number {
 
     assert(parent !== 0);
 
+    let n = 0;
+
     let id = db.internal_select_id(parent, qs);
     if (typeof id === "undefined") {
         id = db.internal_insert(parent, qs);
+        n += 1;
     }
-    return id;
+
+    return { id, n };
 }
 
 export function touch_external(db: Db, url: URL): number {

@@ -4,7 +4,6 @@ import string_width from "string-width";
 import pretty_ms from "pretty-ms";
 
 import * as log from "./log.js";
-import type { Db } from "./db/db.js";
 import type { Queue } from "./queue.js";
 import type { Crawler } from "./crawler.js";
 
@@ -16,7 +15,7 @@ const PR1 = chalk.dim(figures.lineDashed15);
 export class Progress {
     #started = Date.now();
 
-    constructor(private readonly db: Db, private readonly queue: Queue, private readonly crawler: Crawler) {}
+    constructor(private readonly queue: Queue, private readonly crawler: Crawler) {}
 
     render() {
         const elapsed = pretty_ms(Date.now() - this.#started, { colonNotation: true, secondsDecimalDigits: 0 });
@@ -24,13 +23,12 @@ export class Progress {
         const error_count =
             this.crawler.error_count === 0 ? chalk.gray(0) : chalk.yellowBright(this.crawler.error_count);
 
-        const count_visited = this.db.internal_count_visited();
-        const count_pending = this.db.internal_count_pending();
-        const count_total = this.db.internal_count_all();
-        const count_tree = this.db.internal_tree_count_all();
+        const count_pending = this.crawler.count_pending;
+        const count_visited = this.crawler.count_visited;
+        const count_total = this.crawler.count_total;
 
         const start_str = `${elapsed} ${rps} ${this.queue.pop_count} ${error_count}`;
-        const end_str = `${count_visited}/${count_pending} ${count_total}|${count_tree}`;
+        const end_str = `${count_visited}/${count_pending} ${count_total}`;
 
         let progress = " ";
 

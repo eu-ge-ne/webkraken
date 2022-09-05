@@ -45,7 +45,7 @@ async function action(file_name: string, _: unknown, command: Command) {
         batch_size: 1000,
     });
 
-    const progress = new Progress(db, queue, crawler);
+    const progress = new Progress(queue, crawler);
 
     const crawling = crawler.run();
     let crawling_completed = false;
