@@ -5,7 +5,7 @@ import { query } from "./query.js";
 import { Perf } from "./perf.js";
 import { internal_tree_select_id } from "./internal_tree/select_id.js";
 import { internal_tree_select_parent } from "./internal_tree/select_parent.js";
-import { internal_tree_select_parent_chunk } from "./internal_tree/select_parent_chunk.js";
+import { internal_tree_select_chunks } from "./internal_tree/select_chunks.js";
 import { internal_tree_scan_children } from "./internal_tree/scan_children.js";
 import { internal_tree_count_children } from "./internal_tree/count_children.js";
 import { internal_tree_insert } from "./internal_tree/insert.js";
@@ -165,8 +165,8 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @query
-    get internal_tree_select_parent_chunk() {
-        return internal_tree_select_parent_chunk(this);
+    get internal_tree_select_chunks() {
+        return internal_tree_select_chunks(this);
     }
 
     @query

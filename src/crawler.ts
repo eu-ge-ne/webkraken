@@ -158,14 +158,8 @@ export class Crawler {
     }
 
     #build_href(parent: number, qs: string) {
-        let chunks: string[] = [qs];
-
-        while (parent !== 0) {
-            const item = this.db.internal_tree_select_parent_chunk(parent);
-            chunks.unshift(item.chunk);
-            parent = item.parent;
-        }
-
+        const chunks = this.db.internal_tree_select_chunks(parent);
+        chunks.push(qs);
         return chunks.join("");
     }
 
