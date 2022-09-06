@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "7.6.0",
-    "@types/node": "18.7.13",
+    "@types/node": "18.7.15",
     "@types/user-agents": "1.0.2",
     "ava": "4.3.3",
     "npm-run-all": "4.1.5",
@@ -45,11 +45,11 @@
     "chalk": "5.0.1",
     "commander": "9.4.0",
     "figures": "5.0.0",
-    "got": "12.3.1",
+    "got": "12.4.1",
     "hpagent": "1.0.0",
     "linkedom": "0.14.12",
     "pretty-ms": "8.0.0",
     "string-width": "5.1.2",
-    "user-agents": "1.0.1119"
+    "user-agents": "1.0.1130"
   }
 }
