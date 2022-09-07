@@ -3,30 +3,38 @@ import assert from "node:assert/strict";
 import type { Db } from "./db/db.js";
 import { split_url } from "./url.js";
 
-export function touch_internal(db: Db, url: URL): { id: number; n: number } {
+export function touch_internal(db: Db, url: URL): { id: number; n_inserted: number } {
     const { chunks, qs } = split_url(url);
 
     let parent = 0;
+    let i = 0;
 
-    for (const chunk of chunks) {
-        let id = db.internal_tree_select_id(parent, chunk);
+    while (i < chunks.length) {
+        const id = db.internal_tree_select_id(parent, chunks[i]);
         if (typeof id === "undefined") {
-            id = db.internal_tree_insert(parent, chunk);
+            break;
         }
         parent = id;
+        i += 1;
     }
 
-    assert(parent !== 0);
+    while (i < chunks.length) {
+        parent = db.internal_tree_insert(parent, chunks[i]);
+        i += 1;
+    }
 
-    let n = 0;
+    assert.equal(i, chunks.length);
+    assert.notEqual(parent, 0);
+
+    let n_inserted = 0;
 
     let id = db.internal_select_id(parent, qs);
     if (typeof id === "undefined") {
         id = db.internal_insert(parent, qs);
-        n += 1;
+        n_inserted = 1;
     }
 
-    return { id, n };
+    return { id, n_inserted };
 }
 
 export function touch_external(db: Db, url: URL): number {

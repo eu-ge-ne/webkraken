@@ -77,8 +77,8 @@ export class Db {
         return new Db({ ...opts, existing: true });
     }
 
-    transaction(fn: () => void) {
-        this.#db.transaction(fn)();
+    transaction<T>(fn: () => T) {
+        return this.#db.transaction(fn)();
     }
 
     exec(query: string) {

@@ -164,10 +164,10 @@ export class Crawler {
     }
 
     #visited(visit_id: number, res: RequestResult, urls?: ParsedUrls) {
-        this.db.transaction(() => {
+        const { n_inserted } = this.db.transaction(() => {
             this.db.internal_update_visited(visit_id, res.status_code, res.time_total);
 
-            this.#count_visited += 1;
+            let n_inserted = 0;
 
             if (urls) {
                 for (const url of urls.valid) {
@@ -178,9 +178,8 @@ export class Crawler {
                             log.debug("Excluded %s", url.href);
                         } else {
                             const result = touch_internal(this.db, url);
+                            n_inserted += result.n_inserted;
                             this.db.internal_link_insert(visit_id, result.id);
-
-                            this.#count_pending += result.n;
                         }
                     } else {
                         const to_id = touch_external(this.db, url);
@@ -193,6 +192,11 @@ export class Crawler {
                     this.db.invalid_link_insert(visit_id, to_id);
                 }
             }
+
+            return { n_inserted };
         });
+
+        this.#count_visited += 1;
+        this.#count_pending = this.#count_pending - 1 + n_inserted;
     }
 }
