@@ -133,13 +133,8 @@ export class Crawler {
         let item = this.queue.pop();
 
         if (!item) {
-            const pending = this.db.internal_leaf_select_pending(this.opts.batch_size);
-            const items = pending.map(({ id, parent, qs }) => ({
-                id,
-                href: this.#build_href(parent, qs),
-            }));
-
-            this.queue.push(items);
+            const pending = this.db.internal_select_pending(this.opts.batch_size);
+            this.queue.push(pending);
 
             log.debug("Cached %d pending urls", this.queue.item_count);
 
@@ -155,12 +150,6 @@ export class Crawler {
             log.debug("Waiting %d ms", delay);
             await wait(delay);
         }
-    }
-
-    #build_href(parent: number, qs: string) {
-        const chunks = this.db.internal_tree_select_chunks(parent);
-        chunks.push(qs);
-        return chunks.join("");
     }
 
     #visited(visit_id: number, res: RequestResult, urls?: ParsedUrls) {
