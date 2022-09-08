@@ -33,7 +33,7 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     for (const { parent, chunks } of db.internal_tree_scan_children(opts.depth)) {
         let children_count = db.internal_tree_count_children(parent);
-        let url_count = db.internal_count_children(parent);
+        let url_count = db.internal_leaf_count_children(parent);
 
         log.info(
             "%s%s\t\t\t\t%i children, %i urls",

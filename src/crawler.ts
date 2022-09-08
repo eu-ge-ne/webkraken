@@ -35,8 +35,8 @@ export class Crawler {
         this.#include_patterns = this.db.include_select_all().map((x) => new RegExp(x.regexp));
         this.#exclude_patterns = this.db.exclude_select_all().map((x) => new RegExp(x.regexp));
 
-        this.#count_pending = this.db.internal_count_pending();
-        this.#count_visited = this.db.internal_count_visited();
+        this.#count_pending = this.db.internal_leaf_count_pending();
+        this.#count_visited = this.db.internal_leaf_count_visited();
     }
 
     get rps() {
@@ -133,7 +133,7 @@ export class Crawler {
         let item = this.queue.pop();
 
         if (!item) {
-            const pending = this.db.internal_select_pending(this.opts.batch_size);
+            const pending = this.db.internal_leaf_select_pending(this.opts.batch_size);
             const items = pending.map(({ id, parent, qs }) => ({
                 id,
                 href: this.#build_href(parent, qs),
@@ -165,7 +165,7 @@ export class Crawler {
 
     #visited(visit_id: number, res: RequestResult, urls?: ParsedUrls) {
         const { n_inserted } = this.db.transaction(() => {
-            this.db.internal_update_visited(visit_id, res.status_code, res.time_total);
+            this.db.internal_leaf_update_visited(visit_id, res.status_code, res.time_total);
 
             let n_inserted = 0;
 

@@ -16,9 +16,9 @@ async function action(file_name: string, _: unknown, command: Command) {
     const db = Db.open({ file_name, perf: opts.perf });
 
     log.info("Internal", {
-        total: db.internal_count_all(),
-        visited: db.internal_count_visited(),
-        pending: db.internal_count_pending(),
+        total: db.internal_leaf_count_all(),
+        visited: db.internal_leaf_count_visited(),
+        pending: db.internal_leaf_count_pending(),
     });
 
     log.info("External", {

@@ -1,8 +1,8 @@
 import type { Db } from "../db.js";
 
-export function internal_insert(db: Db): (parent: number, qs: string) => number {
+export function internal_leaf_insert(db: Db): (parent: number, qs: string) => number {
     const st = db.prepare<{ parent: number; qs: string }>(`
-INSERT INTO "internal" ("parent", "qs")
+INSERT INTO "internal_leaf" ("parent", "qs")
 VALUES (:parent, :qs)
 RETURNING "id";
 `);

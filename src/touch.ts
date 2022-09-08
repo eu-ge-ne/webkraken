@@ -28,9 +28,9 @@ export function touch_internal(db: Db, url: URL): { id: number; n_inserted: numb
 
     let n_inserted = 0;
 
-    let id = db.internal_select_id(parent, qs);
+    let id = db.internal_leaf_select_id(parent, qs);
     if (typeof id === "undefined") {
-        id = db.internal_insert(parent, qs);
+        id = db.internal_leaf_insert(parent, qs);
         n_inserted = 1;
     }
 

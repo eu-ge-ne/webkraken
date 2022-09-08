@@ -10,16 +10,16 @@ import { internal_tree_scan_children } from "./internal_tree/scan_children.js";
 import { internal_tree_count_children } from "./internal_tree/count_children.js";
 import { internal_tree_insert } from "./internal_tree/insert.js";
 import { internal_tree_delete } from "./internal_tree/delete.js";
-import { internal_count_all } from "./internal/count_all.js";
-import { internal_select_id } from "./internal/select_id.js";
-import { internal_select_children } from "./internal/select_children.js";
-import { internal_count_children } from "./internal/count_children.js";
-import { internal_count_visited } from "./internal/count_visited.js";
-import { internal_select_pending } from "./internal/select_pending.js";
-import { internal_count_pending } from "./internal/count_pending.js";
-import { internal_insert } from "./internal/insert.js";
-import { internal_update_visited } from "./internal/update_visited.js";
-import { internal_delete } from "./internal/delete.js";
+import { internal_leaf_count_all } from "./internal_leaf/count_all.js";
+import { internal_leaf_select_id } from "./internal_leaf/select_id.js";
+import { internal_leaf_select_children } from "./internal_leaf/select_children.js";
+import { internal_leaf_count_children } from "./internal_leaf/count_children.js";
+import { internal_leaf_count_visited } from "./internal_leaf/count_visited.js";
+import { internal_leaf_select_pending } from "./internal_leaf/select_pending.js";
+import { internal_leaf_count_pending } from "./internal_leaf/count_pending.js";
+import { internal_leaf_insert } from "./internal_leaf/insert.js";
+import { internal_leaf_update_visited } from "./internal_leaf/update_visited.js";
+import { internal_leaf_delete } from "./internal_leaf/delete.js";
 import { internal_link_insert } from "./internal_link/insert.js";
 import { external_select_id } from "./external/select_id.js";
 import { external_select_all } from "./external/select_all.js";
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS "internal_tree" (
 INSERT INTO "internal_tree" ("id", "parent", "chunk")
 VALUES (0, 0, '');
 
-CREATE TABLE IF NOT EXISTS "internal" (
+CREATE TABLE IF NOT EXISTS "internal_leaf" (
     "id"          INTEGER PRIMARY KEY ASC,
     "parent"      INTEGER NOT NULL REFERENCES "internal_tree" ("id") ON DELETE CASCADE,
     "qs"          TEXT    NOT NULL,
@@ -111,10 +111,37 @@ CREATE TABLE IF NOT EXISTS "internal" (
     UNIQUE ("parent", "qs")
 );
 
+CREATE VIEW IF NOT EXISTS "internal" AS
+    WITH RECURSIVE "t_tree" ("id", "parent", "path") AS (
+        SELECT
+            "id",
+            "parent",
+            "chunk" AS "path"
+        FROM "internal_tree"
+        WHERE "id" = 0
+        UNION
+        SELECT
+            "t_child"."id",
+            "t_child"."parent",
+            "t_tree"."path" || "t_child"."chunk" AS "path"
+        FROM "internal_tree" AS "t_child"
+        INNER JOIN "t_tree" ON
+            "t_child"."parent" = "t_tree"."id"
+    )
+    SELECT
+        "internal_leaf"."id",
+        "t_tree"."path" || "internal_leaf"."qs" AS "href",
+        "internal_leaf"."visited",
+        "internal_leaf"."status_code",
+        "internal_leaf"."time_total"
+    FROM "internal_leaf"
+    LEFT JOIN "t_tree" ON
+        "internal_leaf"."parent" = "t_tree"."id";
+
 CREATE TABLE IF NOT EXISTS "internal_link" (
     "id"   INTEGER PRIMARY KEY ASC,
-    "from" INTEGER NOT NULL REFERENCES "internal" ("id") ON DELETE CASCADE,
-    "to"   INTEGER NOT NULL REFERENCES "internal" ("id") ON DELETE CASCADE,
+    "from" INTEGER NOT NULL REFERENCES "internal_leaf" ("id") ON DELETE CASCADE,
+    "to"   INTEGER NOT NULL REFERENCES "internal_leaf" ("id") ON DELETE CASCADE,
     UNIQUE ("from", "to")
 );
 
@@ -125,7 +152,7 @@ CREATE TABLE IF NOT EXISTS "external" (
 
 CREATE TABLE IF NOT EXISTS "external_link" (
     "id"   INTEGER PRIMARY KEY ASC,
-    "from" INTEGER NOT NULL REFERENCES "internal" ("id") ON DELETE CASCADE,
+    "from" INTEGER NOT NULL REFERENCES "internal_leaf" ("id") ON DELETE CASCADE,
     "to"   INTEGER NOT NULL REFERENCES "external" ("id") ON DELETE CASCADE,
     UNIQUE ("from", "to")
 );
@@ -137,7 +164,7 @@ CREATE TABLE IF NOT EXISTS "invalid" (
 
 CREATE TABLE IF NOT EXISTS "invalid_link" (
     "id"   INTEGER PRIMARY KEY ASC,
-    "from" INTEGER NOT NULL REFERENCES "internal" ("id") ON DELETE CASCADE,
+    "from" INTEGER NOT NULL REFERENCES "internal_leaf" ("id") ON DELETE CASCADE,
     "to"   INTEGER NOT NULL REFERENCES "invalid" ("id") ON DELETE CASCADE,
     UNIQUE ("from", "to")
 );
@@ -190,53 +217,53 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @query
-    get internal_count_all() {
-        return internal_count_all(this);
+    get internal_leaf_count_all() {
+        return internal_leaf_count_all(this);
     }
 
     @query
-    get internal_select_id() {
-        return internal_select_id(this);
+    get internal_leaf_select_id() {
+        return internal_leaf_select_id(this);
     }
 
     @query
-    get internal_select_children() {
-        return internal_select_children(this);
+    get internal_leaf_select_children() {
+        return internal_leaf_select_children(this);
     }
 
     @query
-    get internal_count_children() {
-        return internal_count_children(this);
+    get internal_leaf_count_children() {
+        return internal_leaf_count_children(this);
     }
 
     @query
-    get internal_count_visited() {
-        return internal_count_visited(this);
+    get internal_leaf_count_visited() {
+        return internal_leaf_count_visited(this);
     }
 
     @query
-    get internal_select_pending() {
-        return internal_select_pending(this);
+    get internal_leaf_select_pending() {
+        return internal_leaf_select_pending(this);
     }
 
     @query
-    get internal_count_pending() {
-        return internal_count_pending(this);
+    get internal_leaf_count_pending() {
+        return internal_leaf_count_pending(this);
     }
 
     @query
-    get internal_insert() {
-        return internal_insert(this);
+    get internal_leaf_insert() {
+        return internal_leaf_insert(this);
     }
 
     @query
-    get internal_update_visited() {
-        return internal_update_visited(this);
+    get internal_leaf_update_visited() {
+        return internal_leaf_update_visited(this);
     }
 
     @query
-    get internal_delete() {
-        return internal_delete(this);
+    get internal_leaf_delete() {
+        return internal_leaf_delete(this);
     }
 
     @query

@@ -38,7 +38,7 @@ async function action(file_name: string, _: unknown, command: Command) {
     const ids: number[] = [];
 
     for (const { parent, chunks } of db.internal_tree_scan_children()) {
-        for (const { id, qs } of db.internal_select_children(parent)) {
+        for (const { id, qs } of db.internal_leaf_select_children(parent)) {
             const href = chunks.concat(qs).join("");
             if (opts.regexp.some((x) => x.test(href))) {
                 log.info(href);
@@ -52,11 +52,11 @@ async function action(file_name: string, _: unknown, command: Command) {
         log.info("Removing %i excluded internal urls", ids.length);
 
         db.transaction(() => {
-            db.internal_delete(ids);
+            db.internal_leaf_delete(ids);
 
             for (let id of parents) {
                 while (id !== 0) {
-                    if (db.internal_count_children(id) !== 0 || db.internal_tree_count_children(id) !== 0) {
+                    if (db.internal_leaf_count_children(id) !== 0 || db.internal_tree_count_children(id) !== 0) {
                         break;
                     }
                     const parent = db.internal_tree_select_parent(id);

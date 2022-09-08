@@ -1,11 +1,11 @@
 import type { Db } from "../db.js";
 
-export function internal_select_children(db: Db): (parent: number) => { id: number; qs: string }[] {
+export function internal_leaf_select_children(db: Db): (parent: number) => { id: number; qs: string }[] {
     const st = db.prepare<{ parent: number }>(`
 SELECT
     "id",
     "qs"
-FROM "internal"
+FROM "internal_leaf"
 WHERE "parent" = :parent;
 `);
 

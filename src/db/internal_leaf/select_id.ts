@@ -1,9 +1,9 @@
 import type { Db } from "../db.js";
 
-export function internal_select_id(db: Db): (parent: number, qs: string) => number | undefined {
+export function internal_leaf_select_id(db: Db): (parent: number, qs: string) => number | undefined {
     const st = db.prepare<{ parent: number; qs: string }>(`
 SELECT "id"
-FROM "internal"
+FROM "internal_leaf"
 WHERE
     parent = :parent
     AND qs = :qs
