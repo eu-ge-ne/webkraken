@@ -37,15 +37,13 @@ async function action(file_name: string, _: unknown, command: Command) {
     const parents = new Set<number>();
     const ids: number[] = [];
 
-    for (const { parent, chunks } of db.internal_tree_scan_children()) {
-        for (const { id, qs } of db.internal_leaf_select_children(parent)) {
-            const href = chunks.concat(qs).join("");
-            if (opts.regexp.some((x) => x.test(href))) {
-                log.info(href);
-                parents.add(parent);
-                ids.push(id);
-            }
+    for (const { id, parent, href } of db.internal_scan_hrefs()) {
+        if (opts.regexp.every((x) => !x.test(href))) {
+            continue;
         }
+        log.info(href);
+        parents.add(parent);
+        ids.push(id);
     }
 
     if (!opts.dryRun) {

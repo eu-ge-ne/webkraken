@@ -11,13 +11,13 @@ import { internal_tree_insert } from "./internal_tree/insert.js";
 import { internal_tree_delete } from "./internal_tree/delete.js";
 import { internal_leaf_count_all } from "./internal_leaf/count_all.js";
 import { internal_leaf_select_id } from "./internal_leaf/select_id.js";
-import { internal_leaf_select_children } from "./internal_leaf/select_children.js";
 import { internal_leaf_count_children } from "./internal_leaf/count_children.js";
 import { internal_leaf_count_visited } from "./internal_leaf/count_visited.js";
 import { internal_leaf_count_pending } from "./internal_leaf/count_pending.js";
 import { internal_leaf_insert } from "./internal_leaf/insert.js";
 import { internal_leaf_update_visited } from "./internal_leaf/update_visited.js";
 import { internal_leaf_delete } from "./internal_leaf/delete.js";
+import { internal_scan_hrefs } from "./internal/scan_hrefs.js";
 import { internal_select_pending } from "./internal/select_pending.js";
 import { internal_link_insert } from "./internal_link/insert.js";
 import { external_select_id } from "./external/select_id.js";
@@ -128,11 +128,8 @@ CREATE VIEW IF NOT EXISTS "internal" AS
             "t_child"."parent" = "t_tree"."id"
     )
     SELECT
-        "internal_leaf"."id",
-        "t_tree"."path" || "internal_leaf"."qs" AS "href",
-        "internal_leaf"."visited",
-        "internal_leaf"."status_code",
-        "internal_leaf"."time_total"
+        "internal_leaf".*,
+        "t_tree"."path" || "internal_leaf"."qs" AS "href"
     FROM "internal_leaf"
     LEFT JOIN "t_tree" ON
         "internal_leaf"."parent" = "t_tree"."id";
@@ -221,11 +218,6 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @query
-    get internal_leaf_select_children() {
-        return internal_leaf_select_children(this);
-    }
-
-    @query
     get internal_leaf_count_children() {
         return internal_leaf_count_children(this);
     }
@@ -253,6 +245,11 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @query
     get internal_leaf_delete() {
         return internal_leaf_delete(this);
+    }
+
+    @query
+    get internal_scan_hrefs() {
+        return internal_scan_hrefs(this);
     }
 
     @query

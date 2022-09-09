@@ -28,18 +28,18 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     let n = 0;
 
-    for (const { parent, chunks } of db.internal_tree_scan_children()) {
-        let hrefs = db.internal_leaf_select_children(parent).map((x) => chunks.concat(x.qs).join(""));
+    console.log(opts.filter);
 
+    for (const { href } of db.internal_scan_hrefs()) {
         if (opts.filter) {
-            hrefs = hrefs.filter((href) => opts.filter!.some((x) => x.test(href)));
+            if (opts.filter.every((x) => !x.test(href))) {
+                continue;
+            }
         }
 
-        n += hrefs.length;
+        log.info(href);
 
-        for (const href of hrefs) {
-            log.info(href);
-        }
+        n += 1;
     }
 
     log.info("Found %i internal urls", n);
