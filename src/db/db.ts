@@ -21,12 +21,12 @@ import { internal_scan_hrefs } from "./internal/scan_hrefs.js";
 import { internal_select_pending } from "./internal/select_pending.js";
 import { internal_link_insert } from "./internal_link/insert.js";
 import { external_select_id } from "./external/select_id.js";
-import { external_select_all } from "./external/select_all.js";
+import { external_scan } from "./external/scan.js";
 import { external_count_all } from "./external/count_all.js";
 import { external_insert } from "./external/insert.js";
 import { external_link_insert } from "./external_link/insert.js";
 import { invalid_select_id } from "./invalid/select_id.js";
-import { invalid_select_all } from "./invalid/select_all.js";
+import { invalid_scan } from "./invalid/scan.js";
 import { invalid_count_all } from "./invalid/count_all.js";
 import { invalid_insert } from "./invalid/insert.js";
 import { invalid_link_insert } from "./invalid_link/insert.js";
@@ -268,8 +268,8 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @query
-    get external_select_all() {
-        return external_select_all(this);
+    get external_scan() {
+        return external_scan(this);
     }
 
     @query
@@ -293,8 +293,8 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @query
-    get invalid_select_all() {
-        return invalid_select_all(this);
+    get invalid_scan() {
+        return invalid_scan(this);
     }
 
     @query
