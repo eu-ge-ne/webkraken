@@ -1,14 +1,14 @@
 import type { Command } from "commander";
 
-import * as log from "../log.js";
-import { Db } from "../db/db.js";
-import { Queue } from "../queue.js";
-import { Request } from "../request.js";
-import { Crawler } from "../crawler.js";
-import { Progress } from "../progress.js";
-import { parse_url_option } from "../url.js";
-import { wait } from "../wait.js";
-import { FileOpenCommand, type GlobalOptions } from "./global.js";
+import * as log from "../../log.js";
+import { Db } from "../../db/db.js";
+import { Queue } from "../../queue.js";
+import { Request } from "../../request.js";
+import { Crawler } from "../../crawler.js";
+import { Progress } from "./progress.js";
+import { parse_url_option } from "../../url.js";
+import { wait } from "../../wait.js";
+import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
 export const run = new FileOpenCommand("run")
     .description("run crawling")

@@ -3,9 +3,9 @@ import figures from "figures";
 import string_width from "string-width";
 import pretty_ms from "pretty-ms";
 
-import * as log from "./log.js";
-import type { Queue } from "./queue.js";
-import type { Crawler } from "./crawler.js";
+import * as log from "../../log.js";
+import type { Queue } from "../../queue.js";
+import type { Crawler } from "../../crawler.js";
 
 const START = " [";
 const END = "] ";
