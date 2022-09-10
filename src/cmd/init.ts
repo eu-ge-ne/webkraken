@@ -3,7 +3,6 @@ import type { Command } from "commander";
 import * as log from "../log.js";
 import { Db } from "../db/db.js";
 import { parse_url_option } from "../url.js";
-import { touch_internal } from "../touch.js";
 import { FileCreateCommand, type GlobalOptions } from "./global.js";
 
 export const init = new FileCreateCommand("init")
@@ -57,7 +56,7 @@ async function action(file_name: string, _: unknown, command: Command) {
         }
 
         for (const url of opts.url) {
-            touch_internal(db, url);
+            db.internal_touch(url);
         }
     });
 }

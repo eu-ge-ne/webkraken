@@ -36,6 +36,9 @@ import { include_delete } from "./include/delete.js";
 import { exclude_select_all } from "./exclude/select_all.js";
 import { exclude_insert } from "./exclude/insert.js";
 import { exclude_delete } from "./exclude/delete.js";
+import { internal_touch } from "./helpers/internal_touch.js";
+import { external_touch } from "./helpers/external_touch.js";
+import { invalid_touch } from "./helpers/invalid_touch.js";
 import { internal_cleanup } from "./helpers/internal_cleanup.js";
 
 interface Options {
@@ -341,6 +344,18 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @query
     get exclude_delete() {
         return exclude_delete(this);
+    }
+
+    internal_touch(url: URL) {
+        return internal_touch(this, url);
+    }
+
+    external_touch(url: URL) {
+        return external_touch(this, url);
+    }
+
+    invalid_touch(href: string) {
+        return invalid_touch(this, href);
     }
 
     internal_cleanup(parents: number[]) {

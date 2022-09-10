@@ -8,7 +8,6 @@ import { parse_urls, type ParsedUrls } from "./url.js";
 import { Tick } from "./tick.js";
 import { parse_html } from "./parser.js";
 import { wait } from "./wait.js";
-import { touch_internal, touch_external, touch_invalid } from "./touch.js";
 
 interface Options {
     readonly rps: number;
@@ -166,18 +165,18 @@ export class Crawler {
                         if (is_excluded) {
                             log.debug("Excluded %s", url.href);
                         } else {
-                            const result = touch_internal(this.db, url);
+                            const result = this.db.internal_touch(url);
                             n_inserted += result.n_inserted;
                             this.db.internal_link_insert(visit_id, result.id);
                         }
                     } else {
-                        const to_id = touch_external(this.db, url);
+                        const to_id = this.db.external_touch(url);
                         this.db.external_link_insert(visit_id, to_id);
                     }
                 }
 
                 for (const href of urls.invalid) {
-                    const to_id = touch_invalid(this.db, href);
+                    const to_id = this.db.invalid_touch(href);
                     this.db.invalid_link_insert(visit_id, to_id);
                 }
             }

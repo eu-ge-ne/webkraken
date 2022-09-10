@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 
-import type { Db } from "./db/db.js";
-import { split_url } from "./url.js";
+import type { Db } from "../db.js";
+import { split_url } from "../../url.js";
 
-export function touch_internal(db: Db, url: URL): { id: number; n_inserted: number } {
+export function internal_touch(db: Db, url: URL): { id: number; n_inserted: number } {
     const { chunks, qs } = split_url(url);
 
     let parent = 0;
@@ -35,20 +35,4 @@ export function touch_internal(db: Db, url: URL): { id: number; n_inserted: numb
     }
 
     return { id, n_inserted };
-}
-
-export function touch_external(db: Db, url: URL): number {
-    let id = db.external_select_id(url.href);
-    if (typeof id === "undefined") {
-        id = db.external_insert(url.href);
-    }
-    return id;
-}
-
-export function touch_invalid(db: Db, href: string): number {
-    let id = db.invalid_select_id(href);
-    if (typeof id === "undefined") {
-        id = db.invalid_insert(href);
-    }
-    return id;
 }
