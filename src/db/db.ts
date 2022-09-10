@@ -36,6 +36,7 @@ import { include_delete } from "./include/delete.js";
 import { exclude_select_all } from "./exclude/select_all.js";
 import { exclude_insert } from "./exclude/insert.js";
 import { exclude_delete } from "./exclude/delete.js";
+import { internal_cleanup } from "./helpers/internal_cleanup.js";
 
 interface Options {
     readonly file_name: string;
@@ -340,5 +341,9 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     @query
     get exclude_delete() {
         return exclude_delete(this);
+    }
+
+    internal_cleanup(parents: number[]) {
+        return internal_cleanup(this, parents);
     }
 }

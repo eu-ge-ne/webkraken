@@ -52,17 +52,7 @@ async function action(file_name: string, _: unknown, command: Command) {
         db.transaction(() => {
             db.internal_leaf_delete(ids);
 
-            for (let id of parents) {
-                while (id !== 0) {
-                    if (db.internal_leaf_count_children(id) !== 0 || db.internal_tree_count_children(id) !== 0) {
-                        break;
-                    }
-                    const parent = db.internal_tree_select_parent(id);
-                    db.internal_tree_delete(id);
-                    log.debug("Deleted tree item %i", id);
-                    id = parent;
-                }
-            }
+            db.internal_cleanup(Array.from(parents));
 
             for (const regexp of opts.regexp) {
                 db.exclude_insert(regexp.source);
