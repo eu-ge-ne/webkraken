@@ -4,7 +4,6 @@ import string_width from "string-width";
 import pretty_ms from "pretty-ms";
 
 import * as log from "../../log.js";
-import type { Queue } from "../../queue.js";
 import type { Crawler } from "../../crawler.js";
 
 const START = " [";
@@ -15,7 +14,7 @@ const PR1 = chalk.dim(figures.lineDashed15);
 export class Progress {
     #started = Date.now();
 
-    constructor(private readonly queue: Queue, private readonly crawler: Crawler) {}
+    constructor(private readonly crawler: Crawler) {}
 
     render() {
         const elapsed = pretty_ms(Date.now() - this.#started, { colonNotation: true, secondsDecimalDigits: 0 });
@@ -27,7 +26,7 @@ export class Progress {
         const count_visited = this.crawler.count_visited;
         const count_total = this.crawler.count_total;
 
-        const start_str = `${elapsed} ${rps} ${this.queue.pop_count} ${error_count}`;
+        const start_str = `${elapsed} ${rps} ${this.crawler.active_count} ${error_count}`;
         const end_str = `${count_visited}/${count_pending} ${count_total}`;
 
         let progress = " ";

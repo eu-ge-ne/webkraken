@@ -2,9 +2,9 @@ import chalk from "chalk";
 
 import * as log from "./log.js";
 import type { Db } from "./db/db.js";
-import type { Queue } from "./queue.js";
 import type { Request, RequestResult } from "./request.js";
 import { parse_urls, type ParsedUrls } from "./url.js";
+import { Queue } from "./queue.js";
 import { Tick } from "./tick.js";
 import { parse_html } from "./parser.js";
 import { wait } from "./wait.js";
@@ -15,6 +15,7 @@ interface Options {
 }
 
 export class Crawler {
+    readonly #queue = new Queue();
     readonly #tick = new Tick(100);
     readonly #rps_interval: number;
     readonly #include_patterns: RegExp[];
@@ -24,18 +25,17 @@ export class Crawler {
     #count_pending = 0;
     #count_visited = 0;
 
-    constructor(
-        private readonly db: Db,
-        private readonly queue: Queue,
-        private readonly request: Request,
-        private readonly opts: Options
-    ) {
+    constructor(private readonly db: Db, private readonly request: Request, private readonly opts: Options) {
         this.#rps_interval = 1_000 / this.opts.rps;
         this.#include_patterns = this.db.include_select_all().map((x) => new RegExp(x.regexp));
         this.#exclude_patterns = this.db.exclude_select_all().map((x) => new RegExp(x.regexp));
 
         this.#count_pending = this.db.internal_leaf_count_pending();
         this.#count_visited = this.db.internal_leaf_count_visited();
+    }
+
+    get active_count() {
+        return this.#queue.pop_count;
     }
 
     get rps() {
@@ -64,7 +64,7 @@ export class Crawler {
 
             const item = this.#get_next_item();
             if (!item) {
-                if (this.queue.pop_count === 0) {
+                if (this.#queue.pop_count === 0) {
                     break;
                 } else {
                     // TODO: refactor
@@ -122,22 +122,22 @@ export class Crawler {
 
             process.exit(1);
         } finally {
-            this.queue.delete(visit_id);
+            this.#queue.delete(visit_id);
 
             this.#tick.tick();
         }
     }
 
     #get_next_item() {
-        let item = this.queue.pop();
+        let item = this.#queue.pop();
 
         if (!item) {
             const pending = this.db.internal_select_pending(this.opts.batch_size);
-            this.queue.push(pending);
+            this.#queue.push(pending);
 
-            log.debug("Cached %d pending urls", this.queue.item_count);
+            log.debug("Cached %d pending urls", this.#queue.item_count);
 
-            item = this.queue.pop();
+            item = this.#queue.pop();
         }
 
         return item;

@@ -2,7 +2,6 @@ import type { Command } from "commander";
 
 import * as log from "../../log.js";
 import { Db } from "../../db/db.js";
-import { Queue } from "../../queue.js";
 import { Request } from "../../request.js";
 import { Crawler } from "../../crawler.js";
 import { Progress } from "./progress.js";
@@ -34,18 +33,17 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     const db = Db.open({ file_name, perf: opts.perf });
 
-    const queue = new Queue();
     const request = new Request({
         user_agent: opts.userAgent,
         proxy: opts.proxy,
     });
 
-    const crawler = new Crawler(db, queue, request, {
+    const crawler = new Crawler(db, request, {
         rps: opts.rps,
         batch_size: 1000,
     });
 
-    const progress = new Progress(queue, crawler);
+    const progress = new Progress(crawler);
 
     const crawling = crawler.run();
     let crawling_completed = false;
