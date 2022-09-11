@@ -1,5 +1,3 @@
-import chalk from "chalk";
-
 import * as log from "./log.js";
 import type { Db } from "./db/db.js";
 import type { Request, RequestResult } from "./request.js";
@@ -98,7 +96,7 @@ export class Crawler {
             let urls: ParsedUrls | undefined;
 
             if (code >= 200 && code <= 299) {
-                log.info("%d %s", code, chalk.dim(visit_href));
+                log.info_dim("%s %s", code, visit_href);
 
                 const hrefs = parse_html(res.body).hrefs;
                 urls = parse_urls(hrefs, visit_href);

@@ -17,6 +17,7 @@ const log = new Console({
 export let error: LogFn = (msg, ...params) => log.error(chalk.redBright(msg), ...params);
 export let warn: LogFn = (msg, ...params) => log.warn(chalk.yellowBright(msg), ...params);
 export let info: LogFn = log.info;
+export let info_dim: LogFn = (msg, ...params) => log.info(chalk.dim(msg), ...params);
 export let table: TableFn = log.table;
 export let debug: LogFn = () => {};
 
@@ -79,5 +80,6 @@ if (isTTY) {
     error = wrap_log(error);
     warn = wrap_log(warn);
     info = wrap_log(info);
+    info_dim = wrap_log(info_dim);
     table = wrap_table(table);
 }
