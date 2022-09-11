@@ -1,5 +1,3 @@
-import assert from "node:assert/strict";
-
 export function parse_url(href: string): URL {
     const url = new URL(href);
     url.searchParams.sort();

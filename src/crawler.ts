@@ -6,7 +6,7 @@ import type { Request, RequestResult } from "./request.js";
 import { parse_urls, type ParsedUrls } from "./url.js";
 import { Queue } from "./queue.js";
 import { Tick } from "./tick.js";
-import { parse_html } from "./parser.js";
+import { parse_html } from "./parse.js";
 import { wait } from "./wait.js";
 
 interface Options {
