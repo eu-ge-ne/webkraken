@@ -17,9 +17,10 @@ async function action(file_name: string, _: unknown, command: Command) {
 
     let n = 0;
 
-    for (const { href } of db.external_scan()) {
-        n += 1;
+    for (const { href } of db.external_scan_hrefs()) {
         log.info(href);
+
+        n += 1;
     }
 
     log.info("Found %i external urls", n);

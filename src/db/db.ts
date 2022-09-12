@@ -20,10 +20,12 @@ import { internal_leaf_delete } from "./internal_leaf/delete.js";
 import { internal_scan_hrefs } from "./internal/scan_hrefs.js";
 import { internal_select_pending } from "./internal/select_pending.js";
 import { internal_link_insert } from "./internal_link/insert.js";
-import { external_select_id } from "./external/select_id.js";
-import { external_scan } from "./external/scan.js";
-import { external_count_all } from "./external/count_all.js";
-import { external_insert } from "./external/insert.js";
+import { external_tree_select_id } from "./external_tree/select_id.js";
+import { external_tree_insert } from "./external_tree/insert.js";
+import { external_leaf_count_all } from "./external_leaf/count_all.js";
+import { external_leaf_select_id } from "./external_leaf/select_id.js";
+import { external_leaf_insert } from "./external_leaf/insert.js";
+import { external_scan_hrefs } from "./external/scan_hrefs.js";
 import { external_link_insert } from "./external_link/insert.js";
 import { invalid_select_id } from "./invalid/select_id.js";
 import { invalid_scan } from "./invalid/scan.js";
@@ -145,15 +147,51 @@ CREATE TABLE IF NOT EXISTS "internal_link" (
     UNIQUE ("from", "to")
 );
 
-CREATE TABLE IF NOT EXISTS "external" (
-    "id"   INTEGER PRIMARY KEY ASC,
-    "href" TEXT NOT NULL UNIQUE
+CREATE TABLE IF NOT EXISTS "external_tree" (
+    "id"     INTEGER PRIMARY KEY ASC,
+    "parent" INTEGER NOT NULL REFERENCES "external_tree" ("id") ON DELETE CASCADE,
+    "chunk"  TEXT    NOT NULL,
+    UNIQUE ("parent", "chunk")
 );
+
+INSERT INTO "external_tree" ("id", "parent", "chunk")
+VALUES (0, 0, '');
+
+CREATE TABLE IF NOT EXISTS "external_leaf" (
+    "id"     INTEGER PRIMARY KEY ASC,
+    "parent" INTEGER NOT NULL REFERENCES "external_tree" ("id") ON DELETE CASCADE,
+    "qs"     TEXT    NOT NULL,
+    UNIQUE ("parent", "qs")
+);
+
+CREATE VIEW IF NOT EXISTS "external" AS
+    WITH RECURSIVE "t_tree" ("id", "parent", "path") AS (
+        SELECT
+            "id",
+            "parent",
+            "chunk" AS "path"
+        FROM "external_tree"
+        WHERE "id" = 0
+        UNION
+        SELECT
+            "t_child"."id",
+            "t_child"."parent",
+            "t_tree"."path" || "t_child"."chunk" AS "path"
+        FROM "external_tree" AS "t_child"
+        INNER JOIN "t_tree" ON
+            "t_child"."parent" = "t_tree"."id"
+    )
+    SELECT
+        "external_leaf".*,
+        "t_tree"."path" || "external_leaf"."qs" AS "href"
+    FROM "external_leaf"
+    LEFT JOIN "t_tree" ON
+        "external_leaf"."parent" = "t_tree"."id";
 
 CREATE TABLE IF NOT EXISTS "external_link" (
     "id"   INTEGER PRIMARY KEY ASC,
     "from" INTEGER NOT NULL REFERENCES "internal_leaf" ("id") ON DELETE CASCADE,
-    "to"   INTEGER NOT NULL REFERENCES "external" ("id") ON DELETE CASCADE,
+    "to"   INTEGER NOT NULL REFERENCES "external_leaf" ("id") ON DELETE CASCADE,
     UNIQUE ("from", "to")
 );
 
@@ -267,23 +305,33 @@ CREATE TABLE IF NOT EXISTS "exclude" (
     }
 
     @query
-    get external_select_id() {
-        return external_select_id(this);
+    get external_tree_select_id() {
+        return external_tree_select_id(this);
     }
 
     @query
-    get external_scan() {
-        return external_scan(this);
+    get external_tree_insert() {
+        return external_tree_insert(this);
     }
 
     @query
-    get external_count_all() {
-        return external_count_all(this);
+    get external_leaf_count_all() {
+        return external_leaf_count_all(this);
     }
 
     @query
-    get external_insert() {
-        return external_insert(this);
+    get external_leaf_select_id() {
+        return external_leaf_select_id(this);
+    }
+
+    @query
+    get external_leaf_insert() {
+        return external_leaf_insert(this);
+    }
+
+    @query
+    get external_scan_hrefs() {
+        return external_scan_hrefs(this);
     }
 
     @query

@@ -22,7 +22,7 @@ async function action(file_name: string, _: unknown, command: Command) {
     });
 
     log.info("External", {
-        total: db.external_count_all(),
+        total: db.external_leaf_count_all(),
     });
 
     log.info("Invalid", {
