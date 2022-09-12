@@ -4,8 +4,8 @@ import * as log from "../../log.js";
 import { Db } from "../../db/db.js";
 import { FileOpenCommand, type GlobalOptions } from "../global.js";
 
-export const tree = new FileOpenCommand("tree")
-    .description("list internal tree")
+export const internal = new FileOpenCommand("internal")
+    .description("show internal tree")
     .option(
         "--depth <number>",
         "max depth",
@@ -20,12 +20,12 @@ export const tree = new FileOpenCommand("tree")
     )
     .action(action);
 
-interface ListTreeOptions extends GlobalOptions {
+interface TreeInternalOptions extends GlobalOptions {
     depth: number;
 }
 
 async function action(file_name: string, _: unknown, command: Command) {
-    const opts = command.optsWithGlobals<ListTreeOptions>();
+    const opts = command.optsWithGlobals<TreeInternalOptions>();
 
     log.verbose(opts.verbose);
 
