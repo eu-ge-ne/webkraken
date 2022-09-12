@@ -1,6 +1,6 @@
 import * as log from "./log.js";
 import type { Db } from "./db/db.js";
-import type { Request, RequestResult } from "./request.js";
+import type { Request, RequestResult } from "./request/index.js";
 import { parse_urls, type ParsedUrls } from "./url.js";
 import { Queue } from "./queue.js";
 import { Tick } from "./tick.js";

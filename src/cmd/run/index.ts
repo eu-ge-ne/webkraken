@@ -2,7 +2,7 @@ import type { Command } from "commander";
 
 import * as log from "../../log.js";
 import { Db } from "../../db/db.js";
-import { Request } from "../../request.js";
+import { Request } from "../../request/index.js";
 import { Crawler } from "../../crawler.js";
 import { Progress } from "./progress.js";
 import { parse_url_option } from "../../url.js";
