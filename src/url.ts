@@ -1,3 +1,5 @@
+const ALLOWED_PROTOCOLS = ["http:", "https:"];
+
 export function parse_url(href: string): URL {
     const url = new URL(href);
     url.searchParams.sort();
@@ -30,7 +32,15 @@ export interface ParsedUrls {
 }
 
 export function parse_urls(hrefs: string[], base: string): ParsedUrls {
-    const parsed = hrefs.map((href) => ({ href, url: try_parse_url(href, base) }));
+    const parsed = hrefs.map((href) => {
+        let url = try_parse_url(href, base);
+        if (url) {
+            if (ALLOWED_PROTOCOLS.every((x) => x !== url!.protocol)) {
+                url = undefined;
+            }
+        }
+        return { href, url };
+    });
 
     const valid = new Map<string, URL>(parsed.filter((x) => x.url).map((x) => [x.url!.href, x.url!])).values();
     const invalid = parsed.filter((x) => !x.url).map((x) => x.href);

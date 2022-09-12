@@ -94,6 +94,10 @@ test_parse_urls(["/a", "/a/b", "/a/b/"], "http://test.com", {
     valid: ["http://test.com/a", "http://test.com/a/b", "http://test.com/a/b/"],
     invalid: [],
 });
+test_parse_urls(["/a", "javascript:void(0)", "mailto:test@test"], "http://test.com", {
+    valid: ["http://test.com/a"],
+    invalid: ["javascript:void(0)", "mailto:test@test"],
+});
 
 // split_url
 
