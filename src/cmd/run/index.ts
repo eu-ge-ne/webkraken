@@ -3,7 +3,7 @@ import type { Command } from "commander";
 import * as log from "../../log.js";
 import { Db } from "../../db/db.js";
 import { Request } from "../../request/index.js";
-import { Crawler } from "../../crawler.js";
+import { Crawler } from "../../crawler/index.js";
 import { Progress } from "./progress.js";
 import { parse_url_option } from "../../url.js";
 import { wait } from "../../wait.js";

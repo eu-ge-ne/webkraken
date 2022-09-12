@@ -4,7 +4,7 @@ import string_width from "string-width";
 import pretty_ms from "pretty-ms";
 
 import * as log from "../../log.js";
-import type { Crawler } from "../../crawler.js";
+import type { Crawler } from "../../crawler/index.js";
 
 const START = " [";
 const END = "] ";
