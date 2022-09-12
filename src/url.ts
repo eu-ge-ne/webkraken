@@ -32,18 +32,17 @@ export interface ParsedUrls {
 }
 
 export function parse_urls(hrefs: string[], base: string): ParsedUrls {
-    const parsed = hrefs.map((href) => {
-        let url = try_parse_url(href, base);
-        if (url) {
-            if (ALLOWED_PROTOCOLS.every((x) => x !== url!.protocol)) {
-                url = undefined;
-            }
+    const parsed = hrefs.map((href) => ({ href, url: try_parse_url(href, base) }));
+    const allowed = parsed.filter((x) => {
+        const url = x.url;
+        if (url && ALLOWED_PROTOCOLS.every((x) => x !== url.protocol)) {
+            return false;
         }
-        return { href, url };
+        return true;
     });
 
-    const valid = new Map<string, URL>(parsed.filter((x) => x.url).map((x) => [x.url!.href, x.url!])).values();
-    const invalid = parsed.filter((x) => !x.url).map((x) => x.href);
+    const valid = new Map<string, URL>(allowed.filter((x) => x.url).map((x) => [x.url!.href, x.url!])).values();
+    const invalid = allowed.filter((x) => !x.url).map((x) => x.href);
 
     return { valid, invalid };
 }
