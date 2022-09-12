@@ -86,7 +86,8 @@ export class Crawler {
             try {
                 res = await this.request.get(visit_href);
             } catch (err) {
-                log.warn("Scrape error", { visit_href, err });
+                log.warn("ERR %s", visit_href);
+                log.warn("\t%s", (err as Error)?.message || err);
                 this.#error_count += 1;
                 return;
             }
@@ -105,12 +106,12 @@ export class Crawler {
 
                 urls = parse_urls([res.location], visit_href);
             } else {
-                log.warn("%d %s", code, visit_href);
+                log.info("%d %s", code, visit_href);
             }
 
             if (urls) {
                 for (const href of urls.invalid) {
-                    log.warn("Invalid url %s", href);
+                    log.info("??? %s", href);
                 }
             }
 
