@@ -28,7 +28,7 @@ jobs:
     - run: npm ci
     - run: npm test
     - name: Archive test coverage
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage
-          path: coverage
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage
+        path: coverage
