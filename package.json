@@ -25,7 +25,7 @@
     "build:clean": "rimraf build",
     "build:tsc": "tsc",
     "pretest": "run-s build",
-    "test": "ava build",
+    "test": "c8 -r html ava build",
     "prepublishOnly": "run-s test",
     "prestart": "run-s build",
     "start": "node --enable-source-maps build/main.js"
@@ -35,6 +35,7 @@
     "@types/node": "18.7.20",
     "@types/user-agents": "1.0.2",
     "ava": "4.3.3",
+    "c8": "7.12.0",
     "npm-run-all": "4.1.5",
     "prettier": "2.7.1",
     "rimraf": "3.0.2",
