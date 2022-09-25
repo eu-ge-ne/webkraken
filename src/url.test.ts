@@ -21,16 +21,17 @@ test_parse_url("http://test.com/a#b", "http://test.com/a");
 
 // try_parse_url
 
-const macro_try_parse_url = test.macro((t, href: string, base: string, expected: string) => {
+const macro_try_parse_url = test.macro((t, href: string, base: string, expected: string | undefined) => {
     const result = try_parse_url(href, base)?.href;
     t.is(result, expected);
 });
 
-function test_try_parse_url(href: string, base: string, expected: string) {
+function test_try_parse_url(href: string, base: string, expected: string | undefined) {
     const title = `try_parse_url: ${href} ${base}`;
     test(title, macro_try_parse_url, href, base, expected);
 }
 
+test_try_parse_url("bad\\bad", "bad", undefined);
 test_try_parse_url("http://test.com", "http://test.com", "http://test.com/");
 test_try_parse_url("", "http://test.com", "http://test.com/");
 test_try_parse_url("/", "http://test.com", "http://test.com/");
@@ -39,6 +40,17 @@ test_try_parse_url("/?c=3&b=2&a=1", "http://test.com", "http://test.com/?a=1&b=2
 test_try_parse_url("/a#b", "http://test.com", "http://test.com/a");
 
 // parse_url_option
+
+test("parse_url_option: bad\\bad.bad", (t) => {
+    const error = t.throws(
+        () => {
+            parse_url_option("bad\\bad.bad");
+        },
+        { instanceOf: Error }
+    );
+
+    t.is(error?.message, "Invalid URL: bad\\bad.bad");
+});
 
 const macro_parse_url_option = test.macro((t, href: string, prev: URL[] | undefined, expected: string[]) => {
     const result = parse_url_option(href, prev);
